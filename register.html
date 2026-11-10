@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Daftar — KO-BRAS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body class="auth-page">
+  <a href="index.html" class="auth-back">← Kembali</a>
+  <main class="auth-card">
+    <div class="auth-brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span></div>
+    <h1>Daftar Akun</h1>
+    <p class="muted">Pilih jenis akun Anda. Gratis, tanpa kartu kredit.</p>
+    <div class="account-picker" role="tablist">
+      <button type="button" class="picker-btn" data-type="garment" role="tab">Garment</button>
+      <button type="button" class="picker-btn" data-type="konveksi" role="tab">Konveksi</button>
+    </div>
+    <form id="registerForm" novalidate>
+      <input type="hidden" name="account_type" id="accountType" value="" />
+      <label>Nama Lengkap<input type="text" name="full_name" required minlength="2" maxlength="120" autocomplete="name" /></label>
+      <label>Email<input type="email" name="email" required autocomplete="email" /></label>
+      <label>Nomor Telepon<input type="tel" name="phone" required pattern="^\+?[0-9\s\-]{8,20}$" autocomplete="tel" placeholder="+62 812 3456 7890" /></label>
+      <label>Password<input type="password" name="password" required minlength="8" autocomplete="new-password" /><span class="hint">Minimal 8 karakter.</span></label>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Daftar</button>
+      <p class="form-error" id="formError" hidden></p>
+      <p class="form-success" id="formSuccess" hidden></p>
+    </form>
+    <p class="muted small center">Sudah punya akun? <a href="login.html">Masuk</a></p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script>KB.requireAnon('register');</script>
+</body>
+</html>

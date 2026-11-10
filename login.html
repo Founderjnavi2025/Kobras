@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Masuk — KO-BRAS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body class="auth-page">
+  <a href="index.html" class="auth-back">← Kembali</a>
+  <main class="auth-card">
+    <div class="auth-brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span></div>
+    <h1>Masuk</h1>
+    <p class="muted">Selamat datang kembali.</p>
+    <form id="loginForm" novalidate>
+      <label>Email<input type="email" name="email" required autocomplete="email" /></label>
+      <label>Password<input type="password" name="password" required autocomplete="current-password" /></label>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Masuk</button>
+      <p class="form-error" id="formError" hidden></p>
+    </form>
+    <p class="muted small center">Belum punya akun? <a href="register.html">Daftar</a></p>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script>KB.requireAnon('login');</script>
+</body>
+</html>

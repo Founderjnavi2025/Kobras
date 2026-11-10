@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lengkapi Profil — KO-BRAS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body class="auth-page">
+  <main class="auth-card">
+    <div class="auth-brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span></div>
+    <h1>Lengkapi Profil Usaha</h1>
+    <p class="muted">Satu langkah lagi. Data ini bisa diubah kapan saja dari dashboard.</p>
+    <form id="profileForm" novalidate>
+      <label>Nama Usaha / Brand<input type="text" name="name" required minlength="3" maxlength="160" /></label>
+      <label>Kota<input type="text" name="city" maxlength="80" /></label>
+      <label>Provinsi<input type="text" name="province" maxlength="80" /></label>
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Simpan &amp; Lanjut</button>
+      <p class="form-error" id="formError" hidden></p>
+    </form>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="auth.js"></script>
+  <script>KB.requireAuth('profile-setup');</script>
+</body>
+</html>
