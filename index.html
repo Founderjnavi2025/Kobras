@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1020">
+  <title>KO-BRAS — Production Network</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+<header class="navbar">
+  <a href="#" class="brand">KO<span>-</span>BRAS</a>
+  <nav>
+    <a href="#cara-kerja">Cara Kerja</a>
+    <a href="#keuntungan">Keuntungan</a>
+    <button class="btn btn-outline" onclick="showAuth('login')">Masuk</button>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-content">
+      <div class="eyebrow">GARMENT & KONVEKSI NETWORK</div>
+      <h1>Produksi lebih luas.<br><span>Jaringan lebih kuat.</span></h1>
+      <p>
+        Temukan mitra produksi, dapatkan pekerjaan,
+        dan bangun jaringan usaha konveksi dalam satu ekosistem.
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="showAuth('register')">
+          Gabung Ko-Bras <span>→</span>
+        </button>
+        <a class="btn btn-outline" href="#cara-kerja">Pelajari cara kerja</a>
+      </div>
+      <div class="hero-note">Satu jaringan. Banyak peluang produksi.</div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="visual-card main-card">
+        <div class="visual-label">PRODUCTION NETWORK</div>
+        <div class="visual-icon">🏭</div>
+        <h3>Connected Production</h3>
+        <p>Garment terhubung dengan mitra konveksi.</p>
+        <div class="visual-line"></div>
+        <div class="visual-bottom">
+          <span>GARMENT</span>
+          <span class="connection">● ━━━ ●</span>
+          <span>KONVEKSI</span>
+        </div>
+      </div>
+      <div class="floating-tag">✂️ Mitra Produksi</div>
+    </div>
+  </section>
+
+  <section class="section" id="keuntungan">
+    <div class="section-heading">
+      <div class="eyebrow">PILIH JALUR USAHAMU</div>
+      <h2>Siapa yang bergabung?</h2>
+      <p>Ko-Bras mempertemukan dua sisi industri produksi pakaian.</p>
+    </div>
+
+    <div class="role-grid">
+      <article class="role-card garment">
+        <div class="role-icon">🏢</div>
+        <div class="role-label">UNTUK PEMILIK GARMENT</div>
+        <h3>GARMENT</h3>
+        <p>Kelola kebutuhan produksi dan temukan mitra konveksi sesuai kapasitas pekerjaan.</p>
+        <ul>
+          <li>Publikasikan Surat Jalan</li>
+          <li>Temukan mitra konveksi</li>
+          <li>Bagikan pekerjaan berdasarkan kapasitas</li>
+          <li>Pantau progres produksi</li>
+        </ul>
+        <button class="btn btn-primary full" onclick="showAuth('register','garment')">
+          Daftar sebagai Garment →
+        </button>
+      </article>
+
+      <article class="role-card konveksi">
+        <div class="role-icon">🧵</div>
+        <div class="role-label">UNTUK PEMILIK KONVEKSI</div>
+        <h3>KONVEKSI</h3>
+        <p>Daftarkan usaha dan bangun kesempatan mendapatkan pekerjaan dari jaringan garment.</p>
+        <ul>
+          <li>Bangun profil usaha</li>
+          <li>Temukan peluang pekerjaan</li>
+          <li>Ajukan kapasitas produksi</li>
+          <li>Pantau pekerjaan berjalan</li>
+        </ul>
+        <button class="btn btn-primary full" onclick="showAuth('register','konveksi')">
+          Daftar sebagai Konveksi →
+        </button>
+      </article>
+    </div>
+  </section>
+
+  <section class="section workflow" id="cara-kerja">
+    <div class="section-heading">
+      <div class="eyebrow">ALUR EKOSISTEM</div>
+      <h2>Dari pendaftaran sampai produksi.</h2>
+      <p>Kerja sama produksi yang tercatat dalam satu platform.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <span>01</span>
+        <h3>Daftar usaha</h3>
+        <p>Garment dan konveksi membuat profil organisasi.</p>
+      </div>
+      <div class="step">
+        <span>02</span>
+        <h3>Terhubung</h3>
+        <p>Organisasi membangun jaringan mitra produksi.</p>
+      </div>
+      <div class="step">
+        <span>03</span>
+        <h3>Alokasi kerja</h3>
+        <p>Garment membagikan kebutuhan produksi.</p>
+      </div>
+      <div class="step">
+        <span>04</span>
+        <h3>Produksi</h3>
+        <p>Barang diproses, dikirim kembali, dan diperiksa.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="eyebrow">KO-BRAS PRODUCTION NETWORK</div>
+    <h2>Usahamu punya tempat di sini.</h2>
+    <p>Mulai bangun jaringan produksi bersama Ko-Bras.</p>
+    <button class="btn btn-primary" onclick="showAuth('register')">
+      Daftar Sekarang →
+    </button>
+  </section>
+</main>
+
+<footer>
+  <a href="#" class="brand">KO<span>-</span>BRAS</a>
+  <p>Connecting Garment & Konveksi.</p>
+  <span>© 2026 KO-BRAS</span>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="modal" id="authModal">
+  <div class="modal-card">
+    <button class="close-btn" onclick="closeAuth()">×</button>
+
+    <div class="modal-brand">KO<span>-</span>BRAS</div>
+    <div class="eyebrow">MEMBER ACCESS</div>
+    <h2 id="authTitle">Bergabung dengan Ko-Bras</h2>
+    <p class="modal-description" id="authDescription">
+      Buat akun untuk mulai bergabung.
+    </p>
+
+    <div id="registerFields">
+      <form id="registerForm">
+        <label>Nama lengkap</label>
+        <input id="fullName" required minlength="2" maxlength="120"
+          placeholder="Nama pemilik / pengelola">
+
+        <label>Email</label>
+        <input id="regEmail" type="email" required placeholder="nama@email.com">
+
+        <label>Nomor telepon</label>
+        <input id="phone" type="tel" placeholder="08xxxxxxxxxx">
+
+        <label>Nama usaha</label>
+        <input id="orgName" required minlength="3" maxlength="160"
+          placeholder="Nama garment atau konveksi">
+
+        <label>Jenis organisasi</label>
+        <select id="orgType" required>
+          <option value="garment">Garment</option>
+          <option value="konveksi">Konveksi</option>
+        </select>
+
+        <label>Kota / Kabupaten</label>
+        <input id="city" placeholder="Contoh: Bandung">
+
+        <label>Provinsi</label>
+        <input id="province" placeholder="Contoh: Jawa Barat">
+
+        <label>Password</label>
+        <input id="regPassword" type="password" required minlength="8"
+          placeholder="Minimal 8 karakter">
+
+        <button class="btn btn-primary full submit-btn" type="submit">
+          Buat Akun & Daftarkan Usaha →
+        </button>
+      </form>
+    </div>
+
+    <div id="loginFields" hidden>
+      <form id="loginForm">
+        <label>Email</label>
+        <input id="loginEmail" type="email" required placeholder="nama@email.com">
+
+        <label>Password</label>
+        <input id="loginPassword" type="password" required placeholder="Password">
+
+        <button class="btn btn-primary full submit-btn" type="submit">
+          Masuk ke Ko-Bras →
+        </button>
+      </form>
+    </div>
+
+    <div id="memberPanel" hidden>
+      <div class="member-box">
+        <div class="member-avatar">👤</div>
+        <h3 id="memberEmail"></h3>
+        <p id="memberStatus">Kamu sudah masuk.</p>
+        <button class="btn btn-primary full" onclick="finishPendingOrganization()">
+          Lanjutkan pendaftaran usaha
+        </button>
+        <button class="btn btn-outline full" onclick="logout()">Keluar</button>
+      </div>
+    </div>
+
+    <div class="message" id="authMessage" role="status"></div>
+
+    <div class="auth-switch" id="authSwitch">
+      <span id="switchText">Sudah punya akun?</span>
+      <button type="button" onclick="toggleAuth()">Masuk</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
