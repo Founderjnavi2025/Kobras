@@ -93,7 +93,26 @@ async function createOrganization(user) {
   const raw = localStorage.getItem("kobras_pending_org");
 
   if (!raw) {
-    showMessage("Akun aktif. Belum ada data usaha yang menunggu pendaftaran.");
+    showMessage("Belum ada data usaha yang menunggu.");
+    return;
+  }
+
+  const { data: sessionData, error: sessionError } =
+    await db.auth.getSession();
+
+  if (sessionError) throw sessionError;
+
+  const session = sessionData.session;
+
+  if (!session) {
+    showMessage("Session tidak ditemukan. Silakan login kembali.", "error");
+    return;
+  }
+
+  const activeUser = session.user;
+
+  if (user && user.id !== activeUser.id) {
+    showMessage("Identitas akun tidak cocok. Silakan login ulang.", "error");
     return;
   }
 
@@ -106,7 +125,7 @@ async function createOrganization(user) {
     city: data.city || null,
     province: data.province || null,
     country: "ID",
-    created_by: user.id
+    created_by: activeUser.id
   };
 
   const { data: result, error } = await db
@@ -117,8 +136,12 @@ async function createOrganization(user) {
 
   if (error) {
     console.error("Organization registration:", error);
+
     showMessage(
-      "Akun berhasil dibuat, tetapi organisasi belum tersimpan: " + error.message,
+      error.message +
+      (error.details ? " | " + error.details : "") +
+      (error.hint ? " | " + error.hint : "") +
+      (error.code ? " | Code: " + error.code : ""),
       "error"
     );
     return;
@@ -128,7 +151,7 @@ async function createOrganization(user) {
 
   showMessage(
     "Berhasil! Organisasi " + result.name +
-    " sudah terdaftar dengan status " + result.status + "."
+    " terdaftar dengan status " + result.status + "."
   );
 
   $("memberStatus").textContent =
