@@ -12,6 +12,7 @@ const db = window.supabase.createClient(
 );
 
 let authMode = "register";
+let selectedOrgType = "konveksi";
 
 const $ = (id) => document.getElementById(id);
 
@@ -34,7 +35,7 @@ function showAuth(mode = "register", type = "") {
 
   $("authDescription").textContent =
     mode === "register"
-      ? "Daftarkan akun dan organisasi usahamu."
+      ? "Buat akun Ko-Bras terlebih dahulu. Organisasi bisa dibuat setelah login."
       : "Masuk menggunakan akun Ko-Bras.";
 
   $("switchText").textContent =
@@ -45,7 +46,10 @@ function showAuth(mode = "register", type = "") {
 
   clearMessage();
 
-  if (type) $("orgType").value = type;
+  if (type) selectedOrgType = type;
+
+  const orgType = $("orgType");
+  if (orgType) orgType.value = selectedOrgType;
 }
 
 function closeAuth() {
@@ -85,17 +89,52 @@ function makeSlug(name) {
   return base + "-" + crypto.randomUUID().slice(0, 8);
 }
 
-function savePendingOrganization(data) {
-  localStorage.setItem("kobras_pending_org", JSON.stringify(data));
+
+function toggleOrganizationForm() {
+  const form = $("organizationForm");
+  form.hidden = !form.hidden;
 }
 
-async function createOrganization(user) {
-  const raw = localStorage.getItem("kobras_pending_org");
+$("organizationForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  clearMessage();
 
-  if (!raw) {
-    showMessage("Belum ada data usaha yang menunggu.");
+  const name = $("orgName").value.trim();
+
+  if (name.length < 3) {
+    showMessage("Nama organisasi minimal 3 karakter.", "error");
     return;
   }
+
+  const orgData = {
+    name,
+    slug: makeSlug(name),
+    type: $("orgType").value,
+    city: $("city").value.trim(),
+    province: $("province").value.trim()
+  };
+
+  const submit = $("organizationForm").querySelector("button[type=submit]");
+  submit.disabled = true;
+  submit.textContent = "Mendaftarkan...";
+
+  try {
+    const { data, error } = await db.auth.getUser();
+
+    if (error || !data.user) {
+      throw new Error("Sesi login tidak ditemukan. Silakan login kembali.");
+    }
+
+    await createOrganization(data.user, orgData);
+  } catch (error) {
+    showMessage(error.message || "Pendaftaran organisasi gagal.", "error");
+  } finally {
+    submit.disabled = false;
+    submit.textContent = "Daftarkan Organisasi →";
+  }
+});
+
+async function createOrganization(user, data) {
 
   const { data: sessionData, error: sessionError } =
     await db.auth.getSession();
@@ -115,8 +154,6 @@ async function createOrganization(user) {
     showMessage("Identitas akun tidak cocok. Silakan login ulang.", "error");
     return;
   }
-
-  const data = JSON.parse(raw);
 
   const organization = {
     name: data.name,
@@ -147,8 +184,6 @@ async function createOrganization(user) {
     return;
   }
 
-  localStorage.removeItem("kobras_pending_org");
-
   showMessage(
     "Berhasil! Organisasi " + result.name +
     " terdaftar dengan status " + result.status + "."
@@ -156,19 +191,10 @@ async function createOrganization(user) {
 
   $("memberStatus").textContent =
     "Organisasi " + result.name + " berhasil didaftarkan.";
+
+  $("organizationForm").hidden = true;
+  await refreshOrganizationAccess(activeUser);
 }
-
-async function finishPendingOrganization() {
-  const { data, error } = await db.auth.getUser();
-
-  if (error || !data.user) {
-    showMessage("Silakan login kembali.", "error");
-    return;
-  }
-
-  await createOrganization(data.user);
-}
-
 
 // ==========================================
 // REGISTER
@@ -182,22 +208,11 @@ $("registerForm").addEventListener("submit", async (event) => {
   const email = $("regEmail").value.trim();
   const phone = $("phone").value.trim();
   const password = $("regPassword").value;
-  const orgName = $("orgName").value.trim();
-
-  const orgData = {
-    name: orgName,
-    slug: makeSlug(orgName),
-    type: $("orgType").value,
-    city: $("city").value.trim(),
-    province: $("province").value.trim()
-  };
 
   if (password.length < 8) {
     showMessage("Password minimal 8 karakter.", "error");
     return;
   }
-
-  savePendingOrganization(orgData);
 
   const submit = $("registerForm").querySelector("button[type=submit]");
   submit.disabled = true;
@@ -218,14 +233,13 @@ $("registerForm").addEventListener("submit", async (event) => {
     if (error) throw error;
 
     if (data.session && data.user) {
-      await createOrganization(data.user);
       $("memberPanel").hidden = false;
       $("registerFields").hidden = true;
       $("authSwitch").hidden = true;
       $("memberEmail").textContent = data.user.email;
     } else {
       showMessage(
-        "Akun berhasil dibuat. Periksa email untuk konfirmasi. Setelah itu login untuk menyelesaikan pendaftaran organisasi."
+        "Akun berhasil dibuat. Periksa email untuk konfirmasi, lalu login ke Ko-Bras."
       );
     }
 
@@ -234,7 +248,7 @@ $("registerForm").addEventListener("submit", async (event) => {
     showMessage(error.message || "Registrasi gagal.", "error");
   } finally {
     submit.disabled = false;
-    submit.textContent = "Buat Akun & Daftarkan Usaha →";
+    submit.textContent = "Buat Akun →";
   }
 });
 
@@ -268,11 +282,8 @@ $("loginForm").addEventListener("submit", async (event) => {
     $("authSwitch").hidden = true;
 
     $("memberEmail").textContent = data.user.email;
+    await refreshOrganizationAccess(data.user);
     showMessage("Login berhasil. Selamat datang kembali!");
-
-    if (localStorage.getItem("kobras_pending_org")) {
-      await createOrganization(data.user);
-    }
 
   } catch (error) {
     showMessage(error.message || "Login gagal.", "error");
@@ -281,6 +292,61 @@ $("loginForm").addEventListener("submit", async (event) => {
     submit.textContent = "Masuk ke Ko-Bras →";
   }
 });
+
+
+async function refreshOrganizationAccess(user) {
+  const status = $("memberStatus");
+  const createButton = $("showOrganizationForm");
+
+  status.textContent = "Memeriksa keanggotaan organisasi...";
+
+  const { data: memberships, error } = await db
+    .from("organization_members")
+    .select("org_id, role")
+    .eq("profile_id", user.id);
+
+  if (error) {
+    console.error("Membership check:", error);
+    status.textContent = "Gagal memeriksa organisasi. Silakan muat ulang.";
+    return;
+  }
+
+  if (!memberships || memberships.length === 0) {
+    status.textContent = "Kamu sudah masuk. Belum memiliki organisasi.";
+    createButton.hidden = false;
+    return;
+  }
+
+  const orgIds = memberships.map(item => item.org_id);
+
+  const { data: organizations, error: orgError } = await db
+    .from("organizations")
+    .select("id, name, type, status")
+    .in("id", orgIds);
+
+  if (orgError) {
+    console.error("Organization lookup:", orgError);
+    status.textContent = "Keanggotaan ditemukan, tetapi data organisasi gagal dimuat.";
+    return;
+  }
+
+  const org = organizations && organizations[0];
+
+  if (!org) {
+    status.textContent = "Keanggotaan ditemukan, tetapi organisasi tidak tersedia.";
+    return;
+  }
+
+  const membership = memberships.find(item => item.org_id === org.id);
+
+  status.textContent =
+    "Organisasi: " + org.name +
+    " | " + org.type +
+    " | Peran: " + membership.role +
+    " | Status: " + org.status;
+
+  createButton.hidden = true;
+}
 
 
 // ==========================================

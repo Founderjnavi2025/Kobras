@@ -168,28 +168,12 @@
         <label>Nomor telepon</label>
         <input id="phone" type="tel" placeholder="08xxxxxxxxxx">
 
-        <label>Nama usaha</label>
-        <input id="orgName" required minlength="3" maxlength="160"
-          placeholder="Nama garment atau konveksi">
-
-        <label>Jenis organisasi</label>
-        <select id="orgType" required>
-          <option value="garment">Garment</option>
-          <option value="konveksi">Konveksi</option>
-        </select>
-
-        <label>Kota / Kabupaten</label>
-        <input id="city" placeholder="Contoh: Bandung">
-
-        <label>Provinsi</label>
-        <input id="province" placeholder="Contoh: Jawa Barat">
-
         <label>Password</label>
         <input id="regPassword" type="password" required minlength="8"
           placeholder="Minimal 8 karakter">
 
         <button class="btn btn-primary full submit-btn" type="submit">
-          Buat Akun & Daftarkan Usaha →
+          Buat Akun →
         </button>
       </form>
     </div>
@@ -213,9 +197,33 @@
         <div class="member-avatar">👤</div>
         <h3 id="memberEmail"></h3>
         <p id="memberStatus">Kamu sudah masuk.</p>
-        <button class="btn btn-primary full" onclick="finishPendingOrganization()">
-          Lanjutkan pendaftaran usaha
+        <button class="btn btn-primary full" id="showOrganizationForm"
+          onclick="toggleOrganizationForm()">
+          + Buat Organisasi
         </button>
+
+        <form id="organizationForm" hidden>
+          <label>Nama organisasi</label>
+          <input id="orgName" required minlength="3" maxlength="160"
+            placeholder="Nama garment atau konveksi">
+
+          <label>Jenis organisasi</label>
+          <select id="orgType" required>
+            <option value="garment">Garment</option>
+            <option value="konveksi">Konveksi</option>
+          </select>
+
+          <label>Kota / Kabupaten</label>
+          <input id="city" placeholder="Contoh: Bandung">
+
+          <label>Provinsi</label>
+          <input id="province" placeholder="Contoh: Jawa Barat">
+
+          <button class="btn btn-primary full" type="submit">
+            Daftarkan Organisasi →
+          </button>
+        </form>
+
         <button class="btn btn-outline full" onclick="logout()">Keluar</button>
       </div>
     </div>
