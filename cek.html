@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cek KO-BRAS</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body{padding:1.25rem;font-family:system-ui,sans-serif}
+  h1{font-size:1.4rem}
+  .item{padding:.75rem;margin:.5rem 0;border-radius:10px;border:1px solid var(--border);background:var(--surface)}
+  .ok{border-color:var(--ok)} .ok b{color:var(--ok)}
+  .bad{border-color:var(--err)} .bad b{color:var(--err)}
+  .warn{border-color:var(--brand)} .warn b{color:var(--brand)}
+  pre{font-size:.75rem;white-space:pre-wrap;word-break:break-all;margin:.35rem 0 0;color:var(--muted)}
+  button{margin-top:1rem;padding:.75rem 1rem;border-radius:10px;border:1px solid var(--border);background:var(--brand);color:#1a1000;font-weight:700;width:100%;font-size:1rem}
+</style>
+</head>
+<body>
+<h1>Diagnostik KO-BRAS</h1>
+<p class="muted small">Buka halaman ini di HP. Semua hasil tampil di layar.</p>
+<div id="out"></div>
+<button id="reload" onclick="location.reload()">Ulangi Cek</button>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js"></script>
+<script>
+const out = document.getElementById('out');
+function add(cls, title, detail) {
+  const d = document.createElement('div');
+  d.className = 'item ' + cls;
+  d.innerHTML = '<b>' + title + '</b>' + (detail ? '<pre>' + detail + '</pre>' : '');
+  out.appendChild(d);
+}
+
+(async () => {
+  // 1. config.js
+  if (typeof window.KOBRAS_CONFIG === 'object' && window.KOBRAS_CONFIG) {
+    add('ok', '✓ config.js ke-load', JSON.stringify({
+      url_set: !!window.KOBRAS_CONFIG.SUPABASE_URL,
+      key_set: !!window.KOBRAS_CONFIG.SUPABASE_ANON_KEY,
+    }, null, 2));
+  } else {
+    add('bad', '✗ config.js TIDAK ke-load', 'File config.js tidak ada atau gagal di-fetch.');
+    return;
+  }
+
+  // 2. Placeholder check
+  const cfg = window.KOBRAS_CONFIG;
+  if (!cfg.SUPABASE_URL || cfg.SUPABASE_URL.includes('YOUR-PROJECT')) {
+    add('bad', '✗ SUPABASE_URL masih placeholder', cfg.SUPABASE_URL || '(kosong)');
+  } else {
+    add('ok', '✓ SUPABASE_URL terisi', cfg.SUPABASE_URL);
+  }
+  if (!cfg.SUPABASE_ANON_KEY || cfg.SUPABASE_ANON_KEY.includes('YOUR-ANON')) {
+    add('bad', '✗ SUPABASE_ANON_KEY masih placeholder', '(kosong/placeholder)');
+  } else {
+    add('ok', '✓ SUPABASE_ANON_KEY terisi', 'panjang: ' + cfg.SUPABASE_ANON_KEY.length + ' karakter');
+  }
+
+  // 3. Supabase client
+  if (window.KB && window.KB.supabase) {
+    add('ok', '✓ Supabase client dibuat', 'window.KB.supabase tersedia');
+  } else {
+    add('bad', '✗ Supabase client TIDAK dibuat', 'auth.js gagal inisialisasi. Cek Console.');
+    return;
+  }
+
+  // 4. Auth session
+  try {
+    const { data, error } = await window.KB.supabase.auth.getSession();
+    if (error) add('bad', '✗ getSession error', error.message);
+    else if (data.session) add('ok', '✓ Ada session aktif', 'login sebagai: ' + data.session.user.email);
+    else add('warn', '⚠ Tidak ada session', 'belum login — normal kalau baru buka halaman ini');
+  } catch (e) {
+    add('bad', '✗ getSession exception', String(e));
+  }
+
+  // 5. Cek koneksi ke Supabase (query ringan)
+  try {
+    const { error } = await window.KB.supabase.from('organizations').select('id').limit(1);
+    if (error) {
+      if (error.message.includes('permission') || error.code === '42501') {
+        add('warn', '⚠ organizations: permission denied', 'Normal kalau belum login (RLS). Bukan error config.');
+      } else if (error.message.toLowerCase().includes('jwt') || error.message.toLowerCase().includes('apikey')) {
+        add('bad', '✗ ANON KEY SALAH', error.message);
+      } else {
+        add('bad', '✗ Query error', error.message);
+      }
+    } else {
+      add('ok', '✓ Koneksi Supabase OK', 'query organizations berhasil');
+    }
+  } catch (e) {
+    add('bad', '✗ Query exception', String(e));
+  }
+})();
+</script>
+</body>
+</html>
