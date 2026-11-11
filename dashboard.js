@@ -90,8 +90,23 @@
   // ============ GARMENT ============
   async function loadGarment(org) {
     const { data: wos } = await KB.supabase.from('work_orders')
-      .select('*, work_order_items(name), work_order_applications(id, status, org_id, organizations(name))')
+      .select('*, work_order_items(name), work_order_applications(id, status, org_id)')
       .eq('org_id', org.id).order('created_at', { ascending: false });
+
+    // Ambil nama konveksi pelamar via RPC public
+    if (wos && wos.length > 0) {
+      const appOrgIds = [...new Set(wos.flatMap(w => (w.work_order_applications || []).map(a => a.org_id)).filter(Boolean))];
+      if (appOrgIds.length > 0) {
+        const { data: orgs } = await KB.supabase.rpc('get_orgs_public', { p_ids: appOrgIds });
+        const orgMap = {};
+        (orgs || []).forEach(o => orgMap[o.id] = o);
+        wos.forEach(w => {
+          (w.work_order_applications || []).forEach(a => {
+            a.organizations = orgMap[a.org_id] || null;
+          });
+        });
+      }
+    }
     const all = wos || [];
     const open = all.filter(w => w.status === 'open');
     const closed = all.filter(w => w.status === 'closed');
@@ -114,7 +129,8 @@
           ${pendingApps.map(a => `<div class="applicant-item"><span class="small">${a.organizations?.name || 'Konveksi'}</span>
           <button class="btn btn-primary btn-sm" onclick="KB.acceptApp('${a.id}')">Terima</button></div>`).join('')}</div>`;
       } else if (wo.status === 'closed' && accepted) {
-        actionHtml = `<div class="small" style="color:var(--ok); margin-top:.5rem">✓ Dikerjakan oleh: <b>${accepted.organizations?.name}</b></div>`;
+        const konveksiName = accepted.organizations?.name || 'Konveksi (data tidak tersedia)';
+        actionHtml = `<div class="small" style="color:var(--ok); margin-top:.5rem">✓ Dikerjakan oleh: <b>${konveksiName}</b></div>`;
       }
       const total = Number(wo.total_price) || 0;
       const perPcs = pricePerPcs(wo);
