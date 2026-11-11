@@ -181,6 +181,8 @@
         if (form) {
           form.addEventListener('submit', KB.createWorkOrder);
           console.log("[KO-BRAS] Form listener attached.");
+          form.dataset.attached = "yes";
+          if (form.querySelector("button[type=submit]")) form.querySelector("button[type=submit]").textContent = "✓ Terbitkan Surat Jalan";
         } else {
           console.error("[KO-BRAS] createWorkForm tidak ditemukan di HTML!");
         }
