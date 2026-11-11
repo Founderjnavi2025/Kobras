@@ -8,14 +8,14 @@
   const $ = (id) => document.getElementById(id);
 
   async function getMyOrg() {
-    const { data: { session }, error: sessErr } = await KB.supabase.auth.getSession();
-    if (sessErr || !session) return null;
-    const { data: org, error: orgErr } = await KB.supabase
+    const { data: { session } } = await KB.supabase.auth.getSession();
+    if (!session) return null;
+    const { data: org } = await KB.supabase
       .from('organizations')
       .select('id, name, type, city, province')
       .eq('created_by', session.user.id)
       .maybeSingle();
-    if (orgErr) console.error("[KO-BRAS] getMyOrg error:", orgErr);
+    if (org) org.userId = session.user.id; // ← Tambahan penting!
     return org;
   }
 
@@ -211,6 +211,7 @@
     KB.setLoading(btn, true, 'Membuat...');
     const { data: wo, error } = await KB.supabase.from('work_orders').insert({
       org_id: org.id,
+      created_by: org.userId, /* ← INI YANG KURANG TADI */
       title: form.title.value.trim(),
       target_quantity: parseInt(form.target_quantity.value),
       deadline: form.deadline.value || null
