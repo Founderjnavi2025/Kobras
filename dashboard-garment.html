@@ -6,29 +6,18 @@
 <title>KO-BRAS · Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
-<link rel="stylesheet" href="dashboard-style.css?v=3" />
+<link rel="stylesheet" href="dashboard-style.css?v=4" />
 </head>
 <body>
 <div class="dash-layout">
-
   <aside class="dash-sidebar" id="dashSidebar">
     <div class="dash-brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span></div>
     <nav class="dash-nav" id="dashNav">
-      <button class="dash-nav-item active" data-tab="overview">
-        <span class="ico">▤</span> Overview
-      </button>
-      <button class="dash-nav-item" data-tab="surat-jalan">
-        <span class="ico">📋</span> Surat Jalan
-      </button>
-      <button class="dash-nav-item" data-tab="riwayat">
-        <span class="ico">🕒</span> Riwayat
-      </button>
-      <button class="dash-nav-item" data-tab="profil">
-        <span class="ico">👤</span> Profil Usaha
-      </button>
-      <button class="dash-nav-item" data-tab="pengaturan">
-        <span class="ico">⚙</span> Pengaturan
-      </button>
+      <button class="dash-nav-item active" data-tab="overview"><span class="ico">▤</span> Overview</button>
+      <button class="dash-nav-item" data-tab="surat-jalan"><span class="ico">📋</span> Surat Jalan</button>
+      <button class="dash-nav-item" data-tab="riwayat"><span class="ico">🕒</span> Riwayat</button>
+      <button class="dash-nav-item" data-tab="profil"><span class="ico">👤</span> Profil Usaha</button>
+      <button class="dash-nav-item" data-tab="pengaturan"><span class="ico">⚙</span> Pengaturan</button>
     </nav>
     <div class="dash-nav-footer">
       <div class="user-info" id="sidebarEmail">—</div>
@@ -44,61 +33,60 @@
     </div>
 
     <section id="tab-overview" class="tab-section">
-
-      <!-- Greeting -->
       <div class="home-greeting">
-        <h2>Halo, <span id="greetingName">Pemilik</span> 👋</h2>
+        <h2>Halo, <span id="greetingName">Pemilik</span></h2>
         <p><span id="greetingType">Garment</span> · <span id="greetingCity">Bandung</span></p>
       </div>
 
-      <!-- Big Stats -->
       <div class="stat-big">
         <div class="stat-big-card garment">
-          <div class="stat-big-icon">📋</div>
+          <div class="stat-big-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          </div>
           <div class="stat-big-value" id="statActive">0</div>
           <div class="stat-big-label">SJ Aktif</div>
         </div>
         <div class="stat-big-card garment">
-          <div class="stat-big-icon">✓</div>
+          <div class="stat-big-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
           <div class="stat-big-value" id="statDone">0</div>
           <div class="stat-big-label">Selesai</div>
         </div>
         <div class="stat-big-card garment">
-          <div class="stat-big-icon">💰</div>
+          <div class="stat-big-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
           <div class="stat-big-value" id="statNilai">Rp 0</div>
           <div class="stat-big-label">Total Nilai</div>
         </div>
       </div>
 
-      <!-- Aksi Cepat -->
       <div class="quick-actions">
         <h3>Aksi Cepat</h3>
         <div class="quick-actions-grid">
           <button class="quick-action" onclick="switchTab('surat-jalan')">
-            <span class="quick-action-icon">📋</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
             <span class="quick-action-label">Buat SJ</span>
           </button>
           <button class="quick-action" onclick="switchTab('surat-jalan')">
-            <span class="quick-action-icon">📥</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span class="quick-action-label">SJ Aktif</span>
           </button>
           <button class="quick-action" onclick="switchTab('riwayat')">
-            <span class="quick-action-icon">🕒</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             <span class="quick-action-label">Riwayat</span>
           </button>
           <button class="quick-action" onclick="switchTab('profil')">
-            <span class="quick-action-icon">👤</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             <span class="quick-action-label">Profil</span>
           </button>
         </div>
       </div>
 
-      <!-- Aktivitas Terbaru -->
       <div class="card">
         <div class="card-head"><h2>Aktivitas Terbaru</h2></div>
-        <div id="overviewList" class="activity-list">
-          <div class="empty-state">Memuat...</div>
-        </div>
+        <div id="overviewList" class="activity-list"><div class="empty-state">Memuat...</div></div>
       </div>
     </section>
 
@@ -124,25 +112,16 @@
     </section>
 
     <section id="tab-riwayat" class="tab-section" hidden>
-      <div class="card">
-        <div class="card-head"><h2>Riwayat Surat Jalan</h2><p>Pekerjaan yang sudah selesai dikerjakan.</p></div>
-        <div id="riwayatList"><div class="empty-state">Belum ada riwayat.</div></div>
-      </div>
+      <div class="card"><div class="card-head"><h2>Riwayat Surat Jalan</h2></div><div id="riwayatList"><div class="empty-state">Belum ada riwayat.</div></div></div>
     </section>
 
     <section id="tab-profil" class="tab-section" hidden>
       <div class="card">
         <div class="card-head"><h2>Profil Usaha</h2></div>
         <form id="orgProfileForm" style="display:flex; flex-direction:column; gap:.75rem">
-          <label style="font-size:.85rem; color:var(--muted)">Nama Usaha
-            <input name="name" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-          </label>
-          <label style="font-size:.85rem; color:var(--muted)">Kota
-            <input name="city" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-          </label>
-          <label style="font-size:.85rem; color:var(--muted)">Provinsi
-            <input name="province" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-          </label>
+          <label style="font-size:.85rem; color:var(--muted)">Nama Usaha<input name="name" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px"></label>
+          <label style="font-size:.85rem; color:var(--muted)">Kota<input name="city" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px"></label>
+          <label style="font-size:.85rem; color:var(--muted)">Provinsi<input name="province" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px"></label>
           <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
         </form>
       </div>
@@ -153,12 +132,17 @@
         <div class="card-head"><h2>Pengaturan Akun</h2></div>
         <p class="muted small">Email: <b id="settingEmail">—</b></p>
         <p class="muted small">Status Verifikasi: <span class="badge" id="settingVerif">Belum diajukan</span></p>
-        <p class="muted small" style="margin-top:1rem">Untuk ubah password atau hapus akun, hubungi admin. Fitur self-service akan hadir.</p>
       </div>
     </section>
-
   </main>
 </div>
+
+<nav class="bottom-nav">
+  <button class="bottom-nav-item active" data-nav="overview"><span>Beranda</span></button>
+  <button class="bottom-nav-item" data-nav="surat-jalan"><span>SJ</span></button>
+  <button class="bottom-nav-item" data-nav="riwayat"><span>Riwayat</span></button>
+  <button class="bottom-nav-item" data-nav="profil"><span>Profil</span></button>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
@@ -175,32 +159,9 @@
     document.getElementById("dashSidebar").classList.remove("open");
     document.getElementById("dashOverlay").classList.remove("open");
   };
-  document.querySelectorAll("[data-tab]").forEach(btn => {
-    btn.onclick = () => switchTab(btn.dataset.tab);
-  });
-  document.querySelectorAll(".bottom-nav-item").forEach(btn => {
-      btn.addEventListener("click", () => switchTab(btn.dataset.nav));
-    });
-    window.addEventListener("load", () => initDashboardData("garment"));
+  document.querySelectorAll("[data-tab]").forEach(btn => btn.onclick = () => switchTab(btn.dataset.tab));
+  document.querySelectorAll(".bottom-nav-item").forEach(btn => btn.onclick = () => switchTab(btn.dataset.nav));
+  window.addEventListener("load", () => initDashboardData("garment"));
 </script>
-
-  <nav class="bottom-nav">
-    <button class="bottom-nav-item active" data-nav="overview">
-      <span class="nav-icon">🏠</span>
-      <span>Beranda</span>
-    </button>
-    <button class="bottom-nav-item" data-nav="surat-jalan">
-      <span class="nav-icon">📋</span>
-      <span>SJ</span>
-    </button>
-    <button class="bottom-nav-item" data-nav="riwayat">
-      <span class="nav-icon">🕒</span>
-      <span>Riwayat</span>
-    </button>
-    <button class="bottom-nav-item" data-nav="profil">
-      <span class="nav-icon">👤</span>
-      <span>Profil</span>
-    </button>
-  </nav>
 </body>
 </html>

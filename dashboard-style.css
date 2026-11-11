@@ -438,3 +438,33 @@ input[type="text"], input[type="number"], input[type="date"], textarea, select {
 @media (max-width: 900px) {
   .desktop-only { display: none; }
 }
+
+/* Ikon di stat card */
+.stat-big-icon {
+  color: var(--brand);
+  display: flex; justify-content: center; align-items: center;
+  margin-bottom: .35rem;
+}
+.stat-big-card.konveksi .stat-big-icon { color: var(--brand-2); }
+
+/* Ikon di quick action */
+.quick-action svg {
+  stroke: var(--text);
+  margin-bottom: .35rem;
+}
+
+/* Bottom Nav Style */
+.bottom-nav {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-around; align-items: center;
+  padding: .65rem 0; z-index: 100;
+  box-shadow: 0 -4px 20px rgba(0,0,0,.3);
+}
+.bottom-nav-item {
+  display: flex; flex-direction: column; align-items: center;
+  padding: .5rem .75rem; background: transparent; border: none;
+  color: var(--muted); font-size: .7rem; font-family: inherit; cursor: pointer;
+  flex: 1; border-radius: 8px; transition: all .15s;
+}
+.bottom-nav-item.active { color: var(--brand); background: rgba(255,181,71,.1); }
