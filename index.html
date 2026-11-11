@@ -4,8 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>KO-BRAS — Produksi Lebih Luas. Jaringan Lebih Kuat.</title>
+<meta name="description" content="Platform yang menghubungkan garment dengan jaringan konveksi untuk produksi yang lebih luas dan jaringan yang lebih kuat." />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body class="landing">
 
@@ -16,8 +17,10 @@
       <a href="#cara-kerja">Cara Kerja</a>
       <a href="#garment">Garment</a>
       <a href="#konveksi">Konveksi</a>
-      <a href="login.html" class="btn btn-ghost">Masuk</a>
-      <a href="register.html" class="btn btn-primary">Daftar</a>
+      <div class="nav-actions">
+        <a href="login.html" class="btn btn-ghost">Masuk</a>
+        <a href="register.html" class="btn btn-primary">Daftar</a>
+      </div>
     </nav>
     <button class="nav-toggle" id="navToggle" aria-label="Menu">☰</button>
   </div>
@@ -125,6 +128,10 @@
 </footer>
 
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
-<script>document.getElementById('navToggle').addEventListener('click', () => document.getElementById('siteNav').classList.toggle('open'));</script>
+<script>
+  const navToggle = document.getElementById('navToggle');
+  const siteNav = document.getElementById('siteNav');
+  navToggle.addEventListener('click', () => siteNav.classList.toggle('open'));
+</script>
 </body>
 </html>
