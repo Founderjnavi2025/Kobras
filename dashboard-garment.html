@@ -7,77 +7,66 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
-<body class="dashboard dashboard-garment">
+<body class="dashboard">
 <header class="dash-header">
   <div class="container dash-header-inner">
-    <a href="dashboard-garment.html" class="brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span><span class="role-tag">Garment</span></a>
+    <a href="#" class="brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span><span class="role-tag">Garment</span></a>
     <div class="dash-user">
       <span id="userName" class="muted small">—</span>
-      <button class="btn btn-ghost btn-sm" id="logoutBtn">Keluar</button>
+      <button class="btn btn-outline btn-sm" id="logoutBtn">Keluar</button>
     </div>
   </div>
 </header>
+
 <main class="container dash-main">
-  <section class="dash-hero">
+  <div class="dash-hero">
     <div>
-      <p class="muted small">Selamat datang di jaringan produksi</p>
-      <h1 id="orgName">—</h1>
+      <h1 id="orgName">Memuat...</h1>
       <p class="muted"><span id="orgType">Garment</span> · <span id="orgCity">—</span></p>
     </div>
     <div class="verif-box">
-      <span class="muted small">Status verifikasi</span>
-      <span class="badge" id="verifBadge">—</span>
-      <p class="muted small" id="verifNote">—</p>
+      <span class="muted small">Status</span>
+      <span class="badge" id="verifBadge">Memuat...</span>
     </div>
-  </section>
+  </div>
 
-  <section class="stat-grid">
-    <div class="stat-card stat-g"><span class="stat-label">Penawaran Pekerjaan</span><span class="stat-value">—</span><span class="stat-hint">Segera hadir</span></div>
-    <div class="stat-card stat-g"><span class="stat-label">Pekerjaan Aktif</span><span class="stat-value">—</span><span class="stat-hint">Segera hadir</span></div>
-    <div class="stat-card stat-g"><span class="stat-label">Pekerjaan Selesai</span><span class="stat-value">—</span><span class="stat-hint">Segera hadir</span></div>
-    <div class="stat-card stat-g"><span class="stat-label">Konveksi Terhubung</span><span class="stat-value">—</span><span class="stat-hint">Segera hadir</span></div>
-  </section>
+  <div class="dash-grid">
+    <!-- KOLOM KIRI: FORM -->
+    <div class="dash-col">
+      <div class="card">
+        <div class="card-head"><h2>Buat Surat Jalan Baru</h2></div>
+        <form id="createWorkForm" class="stack-form">
+          <label>Judul Pekerjaan<input name="title" placeholder="Cth: Kaos Polos Hitam" required /></label>
+          <div style="display:flex; gap:1rem;">
+            <label style="flex:1;">Target Qty (pcs)<input name="target_quantity" type="number" min="1" required /></label>
+            <label style="flex:1;">Deadline<input name="deadline" type="date" /></label>
+          </div>
+          <label>Detail Bahan/Barang<input name="items" placeholder="Cth: Cotton Combed 30s" required /></label>
+          <button type="submit" class="btn btn-primary btn-block">Terbitkan Surat Jalan</button>
+        </form>
+      </div>
+    </div>
 
-  <section class="dash-panel">
-    <div class="panel-head"><h2>Konveksi dalam Jaringan</h2><p class="muted small">Daftar konveksi terverifikasi akan muncul di sini.</p></div>
-    <div class="empty-state"><div class="empty-icon">◇</div><p>Belum ada konveksi terhubung.</p><p class="muted small">Fitur pencarian &amp; koneksi segera hadir.</p></div>
-  </section>
-
-  <section class="dash-panel">
-    <div class="panel-head"><h2>Buat Surat Jalan</h2></div>
-    <form id="createWorkForm" style="display:flex; flex-direction:column; gap:.75rem; margin-bottom:1.5rem">
-      <input name="title" placeholder="Judul (Cth: Kaos Hitam)" required style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px;">
-      <input name="target_quantity" type="number" placeholder="Total Quantity (pcs)" required min="1" style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px;">
-      <input name="items" placeholder="Detail Barang (Cth: Cotton Combed 30s)" required style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px;">
-      <input name="deadline" type="date" style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px;">
-      <button type="submit" class="btn btn-primary">Buat Surat Jalan</button>
-    </form>
-    <div id="garmentWorkList"></div>
-  </section>
-
-  <section class="dash-panel">
-    <div class="panel-head"><h2>Profil Usaha</h2></div>
-    <form id="orgProfileForm" class="form-inline">
-      <label>Nama Usaha<input name="name" type="text" required minlength="3" maxlength="160" /></label>
-      <label>Kota<input name="city" type="text" maxlength="80" /></label>
-      <label>Provinsi<input name="province" type="text" maxlength="80" /></label>
-      <button class="btn btn-primary" type="submit">Simpan Perubahan</button>
-      <p class="form-error" id="profileError" hidden></p>
-      <p class="form-success" id="profileSuccess" hidden></p>
-    </form>
-  </section>
+    <!-- KOLOM KANAN: LIST -->
+    <div class="dash-col">
+      <div class="card">
+        <div class="card-head"><h2>Surat Jalan Aktif</h2></div>
+        <div id="garmentWorkList" class="list-container">
+          <div class="empty-state">Memuat data...</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js" crossorigin="anonymous"></script>
+<script src="auth.js"></script>
+<script src="dashboard.js"></script>
 <script>
   KB.requireAuth("dashboard-garment");
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await KB.supabase.auth.signOut();
-    window.location.href = "index.html";
-  });
+  document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
+  window.addEventListener("load", () => initDashboardData("garment"));
 </script>
-<script src="dashboard.js"></script>
-<script>window.addEventListener("load", () => initDashboardData("garment"));</script>
 </body>
 </html>

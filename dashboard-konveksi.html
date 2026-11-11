@@ -7,70 +7,45 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
-<body class="dashboard dashboard-konveksi">
+<body class="dashboard">
 <header class="dash-header">
   <div class="container dash-header-inner">
-    <a href="dashboard-konveksi.html" class="brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span><span class="role-tag role-k">Konveksi</span></a>
+    <a href="#" class="brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span><span class="role-tag role-k">Konveksi</span></a>
     <div class="dash-user">
       <span id="userName" class="muted small">—</span>
-      <button class="btn btn-ghost btn-sm" id="logoutBtn">Keluar</button>
+      <button class="btn btn-outline btn-sm" id="logoutBtn">Keluar</button>
     </div>
   </div>
 </header>
+
 <main class="container dash-main">
-  <section class="dash-hero dash-hero-k">
+  <div class="dash-hero dash-hero-k">
     <div>
-      <p class="muted small">Jaringan konveksi Ko-Bras</p>
-      <h1 id="orgName">—</h1>
+      <h1 id="orgName">Memuat...</h1>
       <p class="muted"><span id="orgType">Konveksi</span> · <span id="orgCity">—</span></p>
     </div>
     <div class="verif-box">
-      <span class="muted small">Status verifikasi</span>
-      <span class="badge" id="verifBadge">—</span>
-      <p class="muted small" id="verifNote">—</p>
+      <span class="muted small">Status</span>
+      <span class="badge" id="verifBadge">Memuat...</span>
     </div>
-  </section>
+  </div>
 
-  <section class="stat-grid">
-    <div class="stat-card stat-k"><span class="stat-label">Penawaran Masuk</span><span class="stat-value">—</span><span class="stat-hint">Segera hadir</span></div>
-    <div class="stat-card stat-k"><span class="stat-label">Pekerjaan Diterima</span><span class="stat-value">—</span><span class="stat-hint">Segera hadir</span></div>
-    <div class="stat-card stat-k"><span class="stat-label">Pekerjaan Aktif</span><span class="stat-value">—</span><span class="stat-hint">Segera hadir</span></div>
-    <div class="stat-card stat-k"><span class="stat-label">Pekerjaan Selesai</span><span class="stat-value">—</span><span class="stat-hint">Segera hadir</span></div>
-  </section>
-
-  <section class="dash-panel">
-    <div class="panel-head"><h2>Daftar Surat Jalan</h2><p class="muted small">Ajukan kesediaan jika kapasitas Anda mencukupi untuk seluruh pesanan.</p></div>
-    <div id="konveksiWorkList"><div class="empty-state">Memuat...</div></div>
-  </section>
-
-  <section class="dash-panel">
-    <div class="panel-head"><h2>Kapasitas Produksi</h2><p class="muted small">Tampilkan kemampuan dan kapasitas konveksi Anda.</p></div>
-    <div class="empty-state"><div class="empty-icon">◇</div><p>Belum ada data kapasitas.</p><p class="muted small">Form kapasitas akan tersedia pada modul berikutnya.</p></div>
-  </section>
-
-  <section class="dash-panel">
-    <div class="panel-head"><h2>Profil Usaha</h2></div>
-    <form id="orgProfileForm" class="form-inline">
-      <label>Nama Usaha<input name="name" type="text" required minlength="3" maxlength="160" /></label>
-      <label>Kota<input name="city" type="text" maxlength="80" /></label>
-      <label>Provinsi<input name="province" type="text" maxlength="80" /></label>
-      <button class="btn btn-primary" type="submit">Simpan Perubahan</button>
-      <p class="form-error" id="profileError" hidden></p>
-      <p class="form-success" id="profileSuccess" hidden></p>
-    </form>
-  </section>
+  <div class="card">
+    <div class="card-head"><h2>Surat Jalan Masuk</h2><p class="muted small">Ambil pekerjaan jika kapasitas Anda mencukupi untuk seluruh pesanan.</p></div>
+    <div id="konveksiWorkList" class="list-container">
+      <div class="empty-state">Memuat data...</div>
+    </div>
+  </div>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js" crossorigin="anonymous"></script>
+<script src="auth.js"></script>
+<script src="dashboard.js"></script>
 <script>
   KB.requireAuth("dashboard-konveksi");
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await KB.supabase.auth.signOut();
-    window.location.href = "index.html";
-  });
+  document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
+  window.addEventListener("load", () => initDashboardData("konveksi"));
 </script>
-<script src="dashboard.js"></script>
-<script>window.addEventListener("load", () => initDashboardData("konveksi"));</script>
 </body>
 </html>

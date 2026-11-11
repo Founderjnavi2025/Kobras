@@ -192,3 +192,60 @@ p{margin:0 0 .75rem}
   .footer-inner{flex-direction:column}
   .footer-cols{gap:2rem}
 }
+
+/* ==== DASHBOARD GRID FULL ==== */
+.dash-main { padding: 2rem 0; }
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr; /* Form kiri, List kanan */
+  gap: 1.5rem;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .dash-grid { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.card-head { margin-bottom: 1.25rem; }
+.card-head h2 { font-size: 1.15rem; margin: 0; }
+.card-head p { margin: .25rem 0 0; }
+
+.stack-form {
+  display: flex; flex-direction: column; gap: 1rem;
+}
+.stack-form label {
+  display: flex; flex-direction: column; gap: .35rem;
+  font-size: .85rem; color: var(--muted); font-weight: 500;
+}
+.stack-form input {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: .75rem;
+  color: var(--text); font-family: inherit; font-size: .95rem;
+}
+.stack-form input:focus { outline: none; border-color: var(--brand); }
+
+/* List Container & Card Items */
+.list-container { display: flex; flex-direction: column; gap: 1rem; }
+.wo-card {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 1.25rem;
+}
+.wo-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .5rem; }
+.wo-card-title { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.wo-card-meta { font-size: .85rem; color: var(--muted); margin-bottom: .75rem; }
+.wo-card-items { font-size: .9rem; color: var(--text); background: var(--bg); padding: .5rem .75rem; border-radius: 6px; display: inline-block; }
+
+/* Applicant List */
+.applicant-list { margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+.applicant-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: .75rem; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; margin-bottom: .5rem;
+}
+.applicant-name { font-weight: 600; font-size: .9rem; }
