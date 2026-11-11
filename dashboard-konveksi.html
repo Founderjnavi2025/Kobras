@@ -6,7 +6,7 @@
 <title>KO-BRAS · Dashboard Konveksi</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
-<link rel="stylesheet" href="dashboard-style.css?v=3" />
+<link rel="stylesheet" href="dashboard-style.css?v=5" />
 </head>
 <body>
 <div class="dash-layout">
@@ -22,7 +22,7 @@
     </nav>
     <div class="dash-nav-footer">
       <div class="user-info" id="sidebarEmail">—</div>
-      <button class="dash-nav-item" id="logoutBtn"><span class="ico">-</span> Keluar</button>
+      <button class="dash-nav-item" id="logoutBtn"><span class="ico">↩</span> Keluar</button>
     </div>
   </aside>
   <div class="dash-overlay" id="dashOverlay"></div>
@@ -34,16 +34,15 @@
     </div>
 
     <section id="tab-overview" class="tab-section">
-
       <div class="home-greeting" style="background: linear-gradient(135deg, rgba(77,212,200,.15), rgba(255,181,71,.05));">
-        <h2>Halo, <span id="greetingName">Konveksi</span> </h2>
+        <h2>Halo, <span id="greetingName">Konveksi</span></h2>
         <p><span id="greetingType">Konveksi</span> · <span id="greetingCity">Bandung</span></p>
       </div>
 
       <div class="stat-big">
         <div class="stat-big-card konveksi">
           <div class="stat-big-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
           </div>
           <div class="stat-big-value" id="statAvailable">0</div>
           <div class="stat-big-label">SJ Tersedia</div>
@@ -88,9 +87,7 @@
 
       <div class="card">
         <div class="card-head"><h2>Pekerjaan Terbaru</h2></div>
-        <div id="overviewList" class="activity-list">
-          <div class="empty-state">Memuat...</div>
-        </div>
+        <div id="overviewList" class="activity-list"><div class="empty-state">Memuat...</div></div>
       </div>
     </section>
 
@@ -109,29 +106,19 @@
     </section>
 
     <section id="tab-riwayat" class="tab-section" hidden>
-      <div class="card">
-        <div class="card-head"><h2>Riwayat Pekerjaan</h2></div>
-        <div id="riwayatList"><div class="empty-state">Belum ada riwayat.</div></div>
-      </div>
+      <div class="card"><div class="card-head"><h2>Riwayat Pekerjaan</h2></div><div id="riwayatList"><div class="empty-state">Belum ada riwayat.</div></div></div>
     </section>
 
     <section id="tab-profil" class="tab-section" hidden>
       <div class="card">
         <div class="card-head"><h2>Profil Usaha</h2></div>
         <form id="orgProfileForm" style="display:flex; flex-direction:column; gap:.75rem">
-          <label style="font-size:.85rem; color:var(--muted)">Nama Usaha
-            <input name="name" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-          </label>
-          <label style="font-size:.85rem; color:var(--muted)">Kota
-            <input name="city" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-          </label>
-          <label style="font-size:.85rem; color:var(--muted)">Provinsi
-            <input name="province" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-          </label>
+          <label style="font-size:.85rem; color:var(--muted)">Nama Usaha<input name="name" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px"></label>
+          <label style="font-size:.85rem; color:var(--muted)">Kota<input name="city" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px"></label>
+          <label style="font-size:.85rem; color:var(--muted)">Provinsi<input name="province" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px"></label>
           <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
         </form>
       </div>
-
       <div class="card" style="margin-top:1rem;">
         <div class="card-head"><h2>Sesi Akun</h2></div>
         <p class="muted small">Anda sedang login sebagai <b id="logoutEmail">—</b>.</p>
@@ -149,10 +136,17 @@
   </main>
 </div>
 
+<nav class="bottom-nav">
+  <button class="bottom-nav-item active" data-nav="overview"><span>Beranda</span></button>
+  <button class="bottom-nav-item" data-nav="surat-jalan"><span>Masuk</span></button>
+  <button class="bottom-nav-item" data-nav="dikerjakan"><span>Kerja</span></button>
+  <button class="bottom-nav-item" data-nav="riwayat"><span>Riwayat</span></button>
+</nav>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
-<script src="dashboard.js?v=400"></script>
+<script src="dashboard.js?v=402"></script>
 <script>
   KB.requireAuth("dashboard-konveksi");
   document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
@@ -166,32 +160,9 @@
     document.getElementById("dashSidebar").classList.remove("open");
     document.getElementById("dashOverlay").classList.remove("open");
   };
-  document.querySelectorAll("[data-tab]").forEach(btn => {
-    btn.onclick = () => switchTab(btn.dataset.tab);
-  });
-  document.querySelectorAll(".bottom-nav-item").forEach(btn => {
-      btn.addEventListener("click", () => switchTab(btn.dataset.nav));
-    });
-    window.addEventListener("load", () => initDashboardData("konveksi"));
+  document.querySelectorAll("[data-tab]").forEach(btn => btn.onclick = () => switchTab(btn.dataset.tab));
+  document.querySelectorAll(".bottom-nav-item").forEach(btn => btn.onclick = () => switchTab(btn.dataset.nav));
+  window.addEventListener("load", () => initDashboardData("konveksi"));
 </script>
-
-  <nav class="bottom-nav">
-    <button class="bottom-nav-item active" data-nav="overview">
-      <span class="nav-icon">🏠</span>
-      <span>Beranda</span>
-    </button>
-    <button class="bottom-nav-item" data-nav="surat-jalan">
-      <span class="nav-icon">📥</span>
-      <span>Masuk</span>
-    </button>
-    <button class="bottom-nav-item" data-nav="dikerjakan">
-      <span class="nav-icon">⚙</span>
-      <span>Kerja</span>
-    </button>
-    <button class="bottom-nav-item" data-nav="riwayat">
-      <span class="nav-icon">🕒</span>
-      <span>Riwayat</span>
-    </button>
-  </nav>
 </body>
 </html>
