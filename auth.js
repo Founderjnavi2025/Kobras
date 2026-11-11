@@ -7,6 +7,38 @@ try {
     
     const supabase = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
     const KB = { supabase, cfg };
+
+    // --- FUNGSI UI/UX YANG HILANG ---
+    function showToast(msg, type = "success") {
+      let container = document.querySelector(".toast-container");
+      if (!container) {
+        container = document.createElement("div");
+        container.className = "toast-container";
+        document.body.appendChild(container);
+      }
+      const t = document.createElement("div");
+      t.className = `toast toast-${type}`;
+      t.textContent = msg;
+      container.appendChild(t);
+      setTimeout(() => {
+        t.classList.add("fade-out");
+        setTimeout(() => t.remove(), 300);
+      }, 3500);
+    }
+
+    function setLoading(btn, isLoading, text = "Proses...") {
+      if (!btn) return;
+      if (isLoading) {
+        btn.dataset.originalText = btn.innerHTML;
+        btn.innerHTML = `<span class="spinner"></span> ${text}`;
+        btn.disabled = true;
+      } else {
+        btn.innerHTML = btn.dataset.originalText || btn.innerHTML;
+        btn.disabled = false;
+      }
+    }
+    // ---------------------------------
+
     const $ = (id) => document.getElementById(id);
 
     // --- FUNGSI PROFILE SETUP ---
@@ -147,6 +179,8 @@ try {
       }
     };
 
+    KB.showToast = showToast;
+    KB.setLoading = setLoading;
     window.KB = KB;
     console.log("[KO-BRAS] auth.js OK");
   })();
