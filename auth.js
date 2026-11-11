@@ -95,10 +95,55 @@ try {
     KB.requireAuth = async function (page) {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return (location.href = "login.html");
+      
       if (page === "profile-setup") {
         const { data: org } = await supabase.from("organizations").select("type").eq("created_by", session.user.id).maybeSingle();
         if (org) return (location.href = org.type === "garment" ? "dashboard-garment.html" : "dashboard-konveksi.html");
         initProfileSetup();
+      } else {
+        // Logika buat dashboard (garment / konveksi)
+        const { data: org } = await supabase.from("organizations").select("id, name, city, province, type").eq("created_by", session.user.id).maybeSingle();
+        if (!org) return (location.href = "profile-setup.html");
+
+        // Isi elemen HTML dengan data dari database
+        if ($("orgName")) $("orgName").textContent = org.name || "—";
+        if ($("orgCity")) $("orgCity").textContent = [org.city, org.province].filter(Boolean).join(", ") || "—";
+        if ($("userName")) $("userName").textContent = session.user.email || "—";
+
+        // Isi form edit profil biar gak kosong
+        const form = $("orgProfileForm");
+        if (form) {
+          form.name.value = org.name || "";
+          form.city.value = org.city || "";
+          form.province.value = org.province || "";
+
+          // Pasang event listener pas tombol simpan diklik
+          form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector("button");
+            const errEl = $("profileError");
+            const okEl = $("profileSuccess");
+            if (errEl) errEl.hidden = true;
+            if (okEl) okEl.hidden = true;
+            
+            btn.disabled = true; btn.textContent = "Menyimpan...";
+            const name = form.name.value.trim();
+            const city = form.city.value.trim() || null;
+            const province = form.province.value.trim() || null;
+
+            const { error } = await supabase.from("organizations").update({ name, city, province }).eq("id", org.id);
+            
+            if (error) {
+              if (errEl) { errEl.textContent = error.message; errEl.hidden = false; }
+              btn.disabled = false; btn.textContent = "Simpan Perubahan";
+            } else {
+              if (okEl) { okEl.textContent = "Profil diperbarui."; okEl.hidden = false; }
+              if ($("orgName")) $("orgName").textContent = name;
+              if ($("orgCity")) $("orgCity").textContent = [city, province].filter(Boolean).join(", ") || "—";
+              btn.disabled = false; btn.textContent = "Simpan Perubahan";
+            }
+          });
+        }
       }
     };
 
