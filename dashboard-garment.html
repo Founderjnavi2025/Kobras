@@ -3,69 +3,133 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Dashboard Garment — KO-BRAS</title>
+<title>KO-BRAS · Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="dashboard-style.css?v=1" />
 </head>
-<body class="dashboard">
-<header class="dash-header">
-  <div class="container dash-header-inner">
-    <a href="#" class="brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span><span class="role-tag">Garment</span></a>
-    <div class="dash-user">
-      <span id="userName" class="muted small">—</span>
-      <button class="btn btn-outline btn-sm" id="logoutBtn">Keluar</button>
-    </div>
-  </div>
-</header>
+<body>
+<div class="dash-layout">
 
-<main class="container dash-main">
-  <div class="dash-hero">
-    <div>
-      <h1 id="orgName">Memuat...</h1>
-      <p class="muted"><span id="orgType">Garment</span> · <span id="orgCity">—</span></p>
+  <aside class="dash-sidebar" id="dashSidebar">
+    <div class="dash-brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span></div>
+    <nav class="dash-nav" id="dashNav">
+      <button class="dash-nav-item active" data-tab="overview">
+        <span class="ico">▤</span> Overview
+      </button>
+      <button class="dash-nav-item" data-tab="surat-jalan">
+        <span class="ico">📋</span> Surat Jalan
+      </button>
+      <button class="dash-nav-item" data-tab="riwayat">
+        <span class="ico">🕒</span> Riwayat
+      </button>
+      <button class="dash-nav-item" data-tab="profil">
+        <span class="ico">👤</span> Profil Usaha
+      </button>
+      <button class="dash-nav-item" data-tab="pengaturan">
+        <span class="ico">⚙</span> Pengaturan
+      </button>
+    </nav>
+    <div class="dash-nav-footer">
+      <div class="user-info" id="sidebarEmail">—</div>
+      <button class="dash-nav-item" id="logoutBtn"><span class="ico">↩</span> Keluar</button>
     </div>
-    <div class="verif-box">
-      <span class="muted small">Status</span>
-      <span class="badge" id="verifBadge">Memuat...</span>
-    </div>
-  </div>
+  </aside>
+  <div class="dash-overlay" id="dashOverlay"></div>
 
-  <div class="dash-grid">
-    <!-- KOLOM KIRI: FORM -->
-    <div class="dash-col">
+  <main class="dash-content">
+    <div class="dash-topbar">
+      <h1 id="pageTitle">Overview</h1>
+      <button class="hamburger" id="hamburger">☰</button>
+    </div>
+
+    <section id="tab-overview" class="tab-section">
+      <div class="stat-grid">
+        <div class="stat-card garment"><span class="stat-label">SJ Aktif</span><span class="stat-value" id="statActive">0</span><span class="stat-hint">Sedang berjalan</span></div>
+        <div class="stat-card garment"><span class="stat-label">SJ Selesai</span><span class="stat-value" id="statDone">0</span><span class="stat-hint">Total selesai</span></div>
+        <div class="stat-card garment"><span class="stat-label">Total Qty</span><span class="stat-value" id="statQty">0</span><span class="stat-hint">pcs diproduksi</span></div>
+        <div class="stat-card garment"><span class="stat-label">Pelamar</span><span class="stat-value" id="statApplicants">0</span><span class="stat-hint">Menunggu review</span></div>
+      </div>
       <div class="card">
-        <div class="card-head"><h2>Buat Surat Jalan Baru</h2></div>
-        <form id="createWorkForm" class="stack-form">
-          <label>Judul Pekerjaan<input name="title" placeholder="Cth: Kaos Polos Hitam" required /></label>
-          <div style="display:flex; gap:1rem;">
-            <label style="flex:1;">Target Qty (pcs)<input name="target_quantity" type="number" min="1" required /></label>
-            <label style="flex:1;">Deadline<input name="deadline" type="date" /></label>
+        <div class="card-head"><h2>Surat Jalan Terbaru</h2></div>
+        <div id="overviewList"><div class="empty-state">Memuat...</div></div>
+      </div>
+    </section>
+
+    <section id="tab-surat-jalan" class="tab-section" hidden>
+      <div class="card">
+        <div class="card-head"><h2>Buat Surat Jalan Baru</h2><p>Isi detail pekerjaan yang akan dilempar ke konveksi.</p></div>
+        <form id="createWorkForm" style="display:flex; flex-direction:column; gap:.75rem">
+          <input name="title" placeholder="Judul Pekerjaan (Cth: Kaos Oblong)" required style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
+          <div style="display:flex; gap:.5rem">
+            <input name="target_quantity" type="number" placeholder="Target Qty (pcs)" required min="1" style="flex:1; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
+            <input name="deadline" type="date" style="flex:1; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
           </div>
-          <label>Detail Bahan/Barang<input name="items" placeholder="Cth: Cotton Combed 30s" required /></label>
-          <button type="submit" class="btn btn-primary btn-block">Terbitkan Surat Jalan</button>
+          <input name="items" placeholder="Detail Bahan/Barang (Cth: Cotton Combed 30s)" required style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
+          <button type="submit" class="btn btn-primary">Terbitkan Surat Jalan</button>
         </form>
       </div>
-    </div>
-
-    <!-- KOLOM KANAN: LIST -->
-    <div class="dash-col">
       <div class="card">
-        <div class="card-head"><h2>Surat Jalan Aktif</h2></div>
-        <div id="garmentWorkList" class="list-container">
-          <div class="empty-state">Memuat data...</div>
-        </div>
+        <div class="card-head"><h2>Daftar Surat Jalan Aktif</h2></div>
+        <div id="garmentWorkList"><div class="empty-state">Memuat...</div></div>
       </div>
-    </div>
-  </div>
-</main>
+    </section>
+
+    <section id="tab-riwayat" class="tab-section" hidden>
+      <div class="card">
+        <div class="card-head"><h2>Riwayat Surat Jalan</h2><p>Pekerjaan yang sudah selesai dikerjakan.</p></div>
+        <div id="riwayatList"><div class="empty-state">Belum ada riwayat.</div></div>
+      </div>
+    </section>
+
+    <section id="tab-profil" class="tab-section" hidden>
+      <div class="card">
+        <div class="card-head"><h2>Profil Usaha</h2></div>
+        <form id="orgProfileForm" style="display:flex; flex-direction:column; gap:.75rem">
+          <label style="font-size:.85rem; color:var(--muted)">Nama Usaha
+            <input name="name" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
+          </label>
+          <label style="font-size:.85rem; color:var(--muted)">Kota
+            <input name="city" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
+          </label>
+          <label style="font-size:.85rem; color:var(--muted)">Provinsi
+            <input name="province" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
+          </label>
+          <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="tab-pengaturan" class="tab-section" hidden>
+      <div class="card">
+        <div class="card-head"><h2>Pengaturan Akun</h2></div>
+        <p class="muted small">Email: <b id="settingEmail">—</b></p>
+        <p class="muted small">Status Verifikasi: <span class="badge" id="settingVerif">Belum diajukan</span></p>
+        <p class="muted small" style="margin-top:1rem">Untuk ubah password atau hapus akun, hubungi admin. Fitur self-service akan hadir.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=99"></script>
-<script src="dashboard.js?v=99"></script>
+<script src="auth.js"></script>
+<script src="dashboard.js?v=200"></script>
 <script>
   KB.requireAuth("dashboard-garment");
   document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
+  document.getElementById("hamburger").onclick = () => {
+    document.getElementById("dashSidebar").classList.toggle("open");
+    document.getElementById("dashOverlay").classList.toggle("open");
+  };
+  document.getElementById("dashOverlay").onclick = () => {
+    document.getElementById("dashSidebar").classList.remove("open");
+    document.getElementById("dashOverlay").classList.remove("open");
+  };
+  document.querySelectorAll("[data-tab]").forEach(btn => {
+    btn.onclick = () => switchTab(btn.dataset.tab);
+  });
   window.addEventListener("load", () => initDashboardData("garment"));
 </script>
 </body>
