@@ -125,6 +125,12 @@
           <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
         </form>
       </div>
+
+      <div class="card" style="margin-top:1rem;">
+        <div class="card-head"><h2>Sesi Akun</h2></div>
+        <p class="muted small">Anda sedang login sebagai <b id="logoutEmail">—</b>.</p>
+        <button class="btn btn-block" id="logoutMobileBtn" style="margin-top:.5rem; background:rgba(248,113,113,.1); color:var(--err); border:1px solid rgba(248,113,113,.3);">Keluar dari Akun</button>
+      </div>
     </section>
 
     <section id="tab-pengaturan" class="tab-section" hidden>
@@ -152,7 +158,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
-<script src="dashboard.js?v=400"></script>
+<script src="dashboard.js?v=401"></script>
 <script>
   KB.requireAuth("dashboard-garment");
   document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
