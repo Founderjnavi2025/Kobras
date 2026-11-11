@@ -17,12 +17,11 @@
 </style>
 </head>
 <body>
-<h1>Diagnostik KO-BRAS v2</h1>
+<h1>Diagnostik KO-BRAS v3</h1>
 <div id="out"></div>
 <button onclick="location.reload()">Ulangi Cek</button>
 
 <script>
-// Tangkap error global sebelum script lain jalan
 window.__kobrasErrors = [];
 window.addEventListener('error', (e) => {
   window.__kobrasErrors.push({
@@ -30,11 +29,20 @@ window.addEventListener('error', (e) => {
     file: e.filename,
     line: e.lineno,
     col: e.colno,
+    error: e.error ? String(e.error) : null,
+  });
+});
+window.addEventListener('unhandledrejection', (e) => {
+  window.__kobrasErrors.push({
+    msg: 'Unhandled promise rejection',
+    file: '(promise)',
+    line: 0, col: 0,
+    error: String(e.reason),
   });
 });
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
 
@@ -48,62 +56,59 @@ function add(cls, title, detail) {
 }
 
 (async () => {
-  // 1. Cek window.supabase (dari CDN)
+  // 1. CDN Supabase
   if (typeof window.supabase === 'object' && window.supabase && window.supabase.createClient) {
     add('ok', '✓ Library Supabase (CDN) ke-load', 'window.supabase.createClient tersedia');
   } else {
-    add('bad', '✗ Library Supabase CDN TIDAK ke-load',
-      'Kemungkinan blokir jaringan / offline. Reload halaman.');
+    add('bad', '✗ Library Supabase CDN TIDAK ke-load', 'Cek koneksi / CDN blokir.');
     return;
   }
 
-  // 2. Cek config
+  // 2. Config
   const cfg = window.KOBRAS_CONFIG || {};
   add(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY ? 'ok' : 'bad',
       cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY ? '✓ config.js OK' : '✗ config.js kosong',
-      'URL: ' + (cfg.SUPABASE_URL || '-') + '\nKey: ' + (cfg.SUPABASE_ANON_KEY ? 'ada' : 'kosong'));
+      'URL: ' + (cfg.SUPABASE_URL || '-'));
 
-  // 3. Cek apakah auth.js ke-load (fetch mentah)
+  // 3. Fetch auth.js dan tampilkan 30 baris pertama (khusus debug)
   try {
-    const r = await fetch('auth.js', { cache: 'no-store' });
-    if (!r.ok) {
-      add('bad', '✗ auth.js TIDAK bisa di-fetch', 'HTTP ' + r.status + ' — file belum ke-push atau path salah.');
-    } else {
-      const text = await r.text();
-      add('ok', '✓ auth.js bisa di-fetch',
-        'ukuran: ' + text.length + ' byte\n' +
-        'mengandung "window.KB": ' + text.includes('window.KB') + '\n' +
-        'mengandung "createClient": ' + text.includes('createClient'));
-    }
+    const r = await fetch('auth.js?v=' + Date.now(), { cache: 'no-store' });
+    const text = await r.text();
+    const preview = text.split('\n').slice(0, 15).join('\n');
+    add(r.ok ? 'ok' : 'bad',
+        (r.ok ? '✓' : '✗') + ' auth.js HTTP ' + r.status + ' (' + text.length + ' byte)',
+        'Preview 15 baris pertama:\n' + preview);
   } catch (e) {
     add('bad', '✗ fetch auth.js gagal', String(e));
   }
 
-  // 4. Cek window.KB (hasil auth.js)
+  // 4. window.KB
   if (window.KB && window.KB.supabase) {
-    add('ok', '✓ window.KB ada & supabase tersedia', 'auth.js jalan sukses');
+    add('ok', '✓ window.KB ada', 'auth.js jalan sukses');
   } else {
-    add('bad', '✗ window.KB TIDAK ada', 'auth.js gagal sebelum sempat assign window.KB');
+    add('bad', '✗ window.KB TIDAK ada', 'auth.js error sebelum assign window.KB');
   }
 
-  // 5. Error global yang tertangkap
+  // 5. Error global
   if (window.__kobrasErrors.length === 0) {
-    add('ok', '✓ Tidak ada error JS global', '');
+    add('ok', '✓ Tidak ada error JS', '');
   } else {
     add('bad', '✗ ' + window.__kobrasErrors.length + ' error JS tertangkap',
-      window.__kobrasErrors.map(e =>
-        `${e.file || '?'}:${e.line || '?'}\n  ${e.msg}`
+      window.__kobrasErrors.map((e, i) =>
+        `[${i+1}] ${e.file || '?'}:${e.line || '?'}:${e.col || '?'}
+    ${e.msg}
+    ${e.error ? 'error: ' + e.error : ''}`
       ).join('\n\n'));
   }
 
-  // 6. Kalau window.KB ada, cek koneksi Supabase
+  // 6. Query Supabase (kalau KB ada)
   if (window.KB && window.KB.supabase) {
     try {
       const { error } = await window.KB.supabase.from('organizations').select('id').limit(1);
       if (error && !error.message.toLowerCase().includes('permission') && error.code !== '42501') {
         add('bad', '✗ Query Supabase error', error.message);
       } else {
-        add('ok', '✓ Koneksi Supabase OK', error ? '(RLS deny normal: ' + error.code + ')' : 'query berhasil');
+        add('ok', '✓ Koneksi Supabase OK', error ? '(RLS deny: ' + error.code + ')' : 'query berhasil');
       }
     } catch (e) {
       add('bad', '✗ Query exception', String(e));
