@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cek KO-BRAS</title>
+<title>Cek Work Order</title>
 <link rel="stylesheet" href="style.css">
 <style>
   body{padding:1.25rem;font-family:system-ui,sans-serif}
@@ -11,20 +11,16 @@
   .item{padding:.75rem;margin:.5rem 0;border-radius:10px;border:1px solid var(--border);background:var(--surface)}
   .ok{border-color:var(--ok)} .ok b{color:var(--ok)}
   .bad{border-color:var(--err)} .bad b{color:var(--err)}
-  .warn{border-color:var(--brand)} .warn b{color:var(--brand)}
   pre{font-size:.72rem;white-space:pre-wrap;word-break:break-all;margin:.35rem 0 0;color:var(--muted)}
-  button{margin-top:1rem;padding:.75rem 1rem;border-radius:10px;border:1px solid var(--border);background:var(--brand);color:#1a1000;font-weight:700;width:100%;font-size:1rem}
 </style>
 </head>
 <body>
-<h1>Diagnostik KO-BRAS v4</h1>
+<h1>Diagnostik Work Order</h1>
 <div id="out"></div>
-<button onclick="location.reload()">Ulangi Cek</button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
-
 <script>
 const out = document.getElementById('out');
 function add(cls, title, detail) {
@@ -36,41 +32,73 @@ function add(cls, title, detail) {
 
 (async () => {
   add('ok', '✓ Halaman dimuat', '');
-
-  if (window.supabase && window.supabase.createClient) {
-    add('ok', '✓ CDN Supabase', 'createClient tersedia');
-  } else {
-    add('bad', '✗ CDN Supabase gagal', 'window.supabase tidak ada');
+  
+  if (!window.KB || !window.KB.supabase) {
+    add('bad', '✗ auth.js gagal load', 'window.KB kosong');
     return;
   }
+  add('ok', '✓ auth.js load', 'KB.supabase tersedia');
 
-  if (window.KOBRAS_CONFIG && window.KOBRAS_CONFIG.SUPABASE_URL && window.KOBRAS_CONFIG.SUPABASE_ANON_KEY) {
-    add('ok', '✓ config.js OK', 'URL: ' + window.KOBRAS_CONFIG.SUPABASE_URL);
+  const { data: { session } } = await KB.supabase.auth.getSession();
+  if (!session) {
+    add('bad', '✗ Tidak ada session', 'Login dulu, buka halaman ini setelah login');
+    return;
+  }
+  add('ok', '✓ Session aktif', session.user.email);
+
+  // Cek organisasi
+  const { data: org, error: orgErr } = await KB.supabase
+    .from('organizations').select('id, name, type').eq('created_by', session.user.id).maybeSingle();
+  
+  if (orgErr) add('bad', '✗ Query organizations gagal', orgErr.message);
+  else if (!org) add('bad', '✗ Organisasi tidak ditemukan', 'User belum punya organisasi');
+  else add('ok', '✓ Organisasi ditemukan', `Nama: ${org.name}\nType: ${org.type}\nID: ${org.id}`);
+
+  if (!org) return;
+
+  // Cek tabel work_orders (SELECT)
+  const { error: woErr } = await KB.supabase.from('work_orders').select('id').limit(1);
+  if (woErr) {
+    add('bad', '✗ Tabel work_orders TIDAK BISA DIAKSES', `Error: ${woErr.message}\nCode: ${woErr.code}\n\nKemungkinan tabel belum dibuat (jalankan SQL 0005 di Supabase) ATAU RLS salah.`);
+    return;
+  }
+  add('ok', '✓ Tabel work_orders bisa diakses', '');
+
+  // Coba INSERT work order asli (test)
+  add('ok', '⏳ Mencoba INSERT work order test...', '');
+  const testTitle = `Test ${Date.now()}`;
+  const { data: wo, error: insErr } = await KB.supabase
+    .from('work_orders')
+    .insert({
+      org_id: org.id,
+      title: testTitle,
+      target_quantity: 1,
+      deadline: null,
+      created_by: session.user.id
+    })
+    .select()
+    .single();
+  
+  if (insErr) {
+    add('bad', '✗ INSERT work_orders GAGAL', `Pesan: ${insErr.message}\nCode: ${insErr.code}\nDetails: ${insErr.details || '-'}\nHint: ${insErr.hint || '-'}`);
+    return;
+  }
+  add('ok', '✓ INSERT work_orders BERHASIL!', `ID: ${wo.id}\nTitle: ${wo.title}\n\nBerarti form seharusnya jalan. Kalau di dashboard tetap gagal, kemungkinan JavaScript handler gak ke-attach (masalah cache).`);
+
+  // Coba INSERT item
+  const { error: itemErr } = await KB.supabase.from('work_order_items').insert({
+    work_order_id: wo.id,
+    name: 'Test Item'
+  });
+  if (itemErr) {
+    add('bad', '✗ INSERT work_order_items GAGAL', `Pesan: ${itemErr.message}\nCode: ${itemErr.code}`);
   } else {
-    add('bad', '✗ config.js kosong', '');
+    add('ok', '✓ INSERT work_order_items BERHASIL', '');
   }
 
-  if (window.KB_ERROR) {
-    add('bad', '✗ auth.js FATAL ERROR',
-      'Message: ' + window.KB_ERROR.message + '\n\nStack:\n' + window.KB_ERROR.stack);
-  } else if (window.KB && window.KB.supabase) {
-    add('ok', '✓ window.KB siap', 'auth.js OK');
-  } else {
-    add('bad', '✗ window.KB kosong', 'Tidak ada KB_ERROR, tapi window.KB juga tidak ada. Aneh — mungkin cache browser. Reload dengan Ctrl+Shift+R.');
-  }
-
-  if (window.KB && window.KB.supabase) {
-    try {
-      const { error } = await window.KB.supabase.from('organizations').select('id').limit(1);
-      if (error && !error.message.toLowerCase().includes('permission') && error.code !== '42501') {
-        add('bad', '✗ Query error', error.message);
-      } else {
-        add('ok', '✓ Koneksi Supabase OK', error ? '(RLS deny normal: ' + error.code + ')' : 'query berhasil');
-      }
-    } catch (e) {
-      add('bad', '✗ Query exception', String(e));
-    }
-  }
+  // Cleanup: hapus work order test
+  await KB.supabase.from('work_orders').delete().eq('id', wo.id);
+  add('ok', '✓ Test data dibersihkan', '');
 })();
 </script>
 </body>
