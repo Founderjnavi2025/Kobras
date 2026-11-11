@@ -133,6 +133,11 @@
         <p class="muted small">Email: <b id="settingEmail">—</b></p>
         <p class="muted small">Status Verifikasi: <span class="badge" id="settingVerif">Belum diajukan</span></p>
       </div>
+      <div class="card">
+        <div class="card-head"><h2>Sesi</h2></div>
+        <p class="muted small">Anda sedang login sebagai <b id="logoutEmail">—</b>.</p>
+        <button class="btn btn-outline" id="logoutMobileBtn" style="width:100%; margin-top:.5rem; color:var(--err); border-color:var(--err)">Keluar dari Akun</button>
+      </div>
     </section>
   </main>
 </div>
@@ -151,6 +156,8 @@
 <script>
   KB.requireAuth("dashboard-garment");
   document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
+  const lmBtn = document.getElementById("logoutMobileBtn");
+  if (lmBtn) lmBtn.onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
   document.getElementById("hamburger").onclick = () => {
     document.getElementById("dashSidebar").classList.toggle("open");
     document.getElementById("dashOverlay").classList.toggle("open");
