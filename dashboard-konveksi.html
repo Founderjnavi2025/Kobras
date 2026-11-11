@@ -14,15 +14,15 @@
     <div class="dash-brand"><span class="brand-mark">◆</span><span class="brand-name">KO-BRAS</span></div>
     <nav class="dash-nav" id="dashNav">
       <button class="dash-nav-item active" data-tab="overview"><span class="ico">▤</span> Overview</button>
-      <button class="dash-nav-item" data-tab="surat-jalan"><span class="ico">📥</span> Surat Jalan Masuk</button>
-      <button class="dash-nav-item" data-tab="dikerjakan"><span class="ico">⚙</span> Sedang Dikerjakan</button>
-      <button class="dash-nav-item" data-tab="riwayat"><span class="ico">🕒</span> Riwayat</button>
-      <button class="dash-nav-item" data-tab="profil"><span class="ico">👤</span> Profil Usaha</button>
-      <button class="dash-nav-item" data-tab="pengaturan"><span class="ico">⚙</span> Pengaturan</button>
+      <button class="dash-nav-item" data-tab="surat-jalan"><span class="ico">-</span> Surat Jalan Masuk</button>
+      <button class="dash-nav-item" data-tab="dikerjakan"><span class="ico">-</span> Sedang Dikerjakan</button>
+      <button class="dash-nav-item" data-tab="riwayat"><span class="ico">-</span> Riwayat</button>
+      <button class="dash-nav-item" data-tab="profil"><span class="ico">-</span> Profil Usaha</button>
+      <button class="dash-nav-item" data-tab="pengaturan"><span class="ico">-</span> Pengaturan</button>
     </nav>
     <div class="dash-nav-footer">
       <div class="user-info" id="sidebarEmail">—</div>
-      <button class="dash-nav-item" id="logoutBtn"><span class="ico">↩</span> Keluar</button>
+      <button class="dash-nav-item" id="logoutBtn"><span class="ico">-</span> Keluar</button>
     </div>
   </aside>
   <div class="dash-overlay" id="dashOverlay"></div>
@@ -36,23 +36,29 @@
     <section id="tab-overview" class="tab-section">
 
       <div class="home-greeting" style="background: linear-gradient(135deg, rgba(77,212,200,.15), rgba(255,181,71,.05));">
-        <h2>Halo, <span id="greetingName">Konveksi</span> 👋</h2>
+        <h2>Halo, <span id="greetingName">Konveksi</span> </h2>
         <p><span id="greetingType">Konveksi</span> · <span id="greetingCity">Bandung</span></p>
       </div>
 
       <div class="stat-big">
         <div class="stat-big-card konveksi">
-          <div class="stat-big-icon">📥</div>
+          <div class="stat-big-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </div>
           <div class="stat-big-value" id="statAvailable">0</div>
           <div class="stat-big-label">SJ Tersedia</div>
         </div>
         <div class="stat-big-card konveksi">
-          <div class="stat-big-icon">⚙</div>
+          <div class="stat-big-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </div>
           <div class="stat-big-value" id="statActive">0</div>
           <div class="stat-big-label">Dikerjakan</div>
         </div>
         <div class="stat-big-card konveksi">
-          <div class="stat-big-icon">✓</div>
+          <div class="stat-big-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
           <div class="stat-big-value" id="statDone">0</div>
           <div class="stat-big-label">Selesai</div>
         </div>
@@ -62,19 +68,19 @@
         <h3>Aksi Cepat</h3>
         <div class="quick-actions-grid">
           <button class="quick-action" onclick="switchTab('surat-jalan')">
-            <span class="quick-action-icon">📥</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span class="quick-action-label">SJ Masuk</span>
           </button>
           <button class="quick-action" onclick="switchTab('dikerjakan')">
-            <span class="quick-action-icon">⚙</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle></svg>
             <span class="quick-action-label">Dikerjakan</span>
           </button>
           <button class="quick-action" onclick="switchTab('riwayat')">
-            <span class="quick-action-icon">🕒</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             <span class="quick-action-label">Riwayat</span>
           </button>
           <button class="quick-action" onclick="switchTab('profil')">
-            <span class="quick-action-icon">👤</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             <span class="quick-action-label">Profil</span>
           </button>
         </div>
@@ -125,6 +131,12 @@
           <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
         </form>
       </div>
+
+      <div class="card" style="margin-top:1rem;">
+        <div class="card-head"><h2>Sesi Akun</h2></div>
+        <p class="muted small">Anda sedang login sebagai <b id="logoutEmail">—</b>.</p>
+        <button class="btn btn-block" id="logoutMobileBtn" style="margin-top:.5rem; background:rgba(248,113,113,.1); color:var(--err); border:1px solid rgba(248,113,113,.3);">Keluar dari Akun</button>
+      </div>
     </section>
 
     <section id="tab-pengaturan" class="tab-section" hidden>
@@ -144,6 +156,8 @@
 <script>
   KB.requireAuth("dashboard-konveksi");
   document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
+  const lmBtn = document.getElementById("logoutMobileBtn");
+  if (lmBtn) lmBtn.onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
   document.getElementById("hamburger").onclick = () => {
     document.getElementById("dashSidebar").classList.toggle("open");
     document.getElementById("dashOverlay").classList.toggle("open");

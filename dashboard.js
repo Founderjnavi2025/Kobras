@@ -58,6 +58,7 @@
     if ($("greetingName")) $("greetingName").textContent = org.name || 'Pengguna';
     if ($("greetingType")) $("greetingType").textContent = org.type === 'garment' ? 'Pemilik Modal' : 'Konveksi';
     if ($("greetingCity")) $("greetingCity").textContent = org.city || '—';
+    if ($("logoutEmail")) $("logoutEmail").textContent = org.email || '—';
     if ($("settingEmail")) $("settingEmail").textContent = org.email || '—';
     const { data: verif } = await KB.supabase.from('organization_verifications')
       .select('status').eq('org_id', org.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
