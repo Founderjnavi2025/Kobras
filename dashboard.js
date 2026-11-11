@@ -144,9 +144,18 @@
 
   // ============ KONVEKSI ============
   async function loadKonveksi(org) {
-    const { data: open } = await KB.supabase.from('work_orders')
-      .select('*, work_order_items(name), organizations!work_orders_org_id_fkey(name)')
+    const { data: openRaw } = await KB.supabase.from('work_orders')
+      .select('*, work_order_items(name)')
       .eq('status', 'open').order('created_at', { ascending: false });
+
+    // Ambil nama org lewat RPC (aman, tanpa data sensitif)
+    const orgIds = [...new Set((openRaw || []).map(w => w.org_id).filter(Boolean))];
+    let orgMap = {};
+    if (orgIds.length > 0) {
+      const { data: orgs } = await KB.supabase.rpc('get_orgs_public', { p_ids: orgIds });
+      (orgs || []).forEach(o => orgMap[o.id] = o);
+    }
+    const open = (openRaw || []).map(w => ({ ...w, organizations: orgMap[w.org_id] || null }));
 
     const { data: mine } = await KB.supabase.from('work_order_applications')
       .select('work_order_id, status, work_orders(*, work_order_items(name), organizations!work_orders_org_id_fkey(name))')
