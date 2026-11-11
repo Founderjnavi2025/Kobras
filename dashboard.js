@@ -27,6 +27,9 @@
     document.querySelectorAll('.dash-nav-item').forEach(b => {
       b.classList.toggle('active', b.dataset.tab === tab);
     });
+    document.querySelectorAll('.bottom-nav-item').forEach(b => {
+      b.classList.toggle('active', b.dataset.nav === tab);
+    });
     const titles = {
       overview: 'Overview',
       'surat-jalan': 'Surat Jalan',
@@ -52,6 +55,9 @@
 
   async function fillHeader(org) {
     if ($("sidebarEmail")) $("sidebarEmail").textContent = org.email || '—';
+    if ($("greetingName")) $("greetingName").textContent = org.name || 'Pengguna';
+    if ($("greetingType")) $("greetingType").textContent = org.type === 'garment' ? 'Pemilik Modal' : 'Konveksi';
+    if ($("greetingCity")) $("greetingCity").textContent = org.city || '—';
     if ($("settingEmail")) $("settingEmail").textContent = org.email || '—';
     const { data: verif } = await KB.supabase.from('organization_verifications')
       .select('status').eq('org_id', org.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
@@ -135,7 +141,16 @@
       $("garmentWorkList").innerHTML = open.length ? open.map(renderCard).join('') : '<div class="empty-state">Belum ada Surat Jalan aktif.</div>';
     }
     if ($("overviewList")) {
-      $("overviewList").innerHTML = all.length ? all.slice(0, 3).map(renderCard).join('') : '<div class="empty-state">Belum ada aktivitas.</div>';
+      $("overviewList").innerHTML = all.length ? all.slice(0, 5).map(wo => {
+        const total = Number(wo.total_price) || 0;
+        return `<div class="activity-item">
+          <div class="activity-info">
+            <div class="activity-title">${wo.title}</div>
+            <div class="activity-meta">${wo.target_quantity} pcs · ${formatRp(total)}</div>
+          </div>
+          <span class="activity-status ${wo.status}">${wo.status}</span>
+        </div>`;
+      }).join('') : '<div class="empty-state">Belum ada aktivitas.</div>';
     }
     if ($("riwayatList")) {
       $("riwayatList").innerHTML = closed.length ? closed.map(renderCard).join('') : '<div class="empty-state">Belum ada riwayat.</div>';
@@ -209,7 +224,16 @@
       $("inProgressList").innerHTML = accepted.length ? accepted.map(w => renderCard(w, false)).join('') : '<div class="empty-state">Belum ada pekerjaan aktif.</div>';
     }
     if ($("overviewList")) {
-      $("overviewList").innerHTML = (open || []).slice(0, 3).map(w => renderCard(w, true)).join('') || '<div class="empty-state">Belum ada aktivitas.</div>';
+      $("overviewList").innerHTML = (open || []).length ? open.slice(0, 5).map(wo => {
+        const total = Number(wo.total_price) || 0;
+        return `<div class="activity-item">
+          <div class="activity-info">
+            <div class="activity-title">${wo.title}</div>
+            <div class="activity-meta">${wo.target_quantity} pcs · ${formatRp(total)}</div>
+          </div>
+          <span class="activity-status open">open</span>
+        </div>`;
+      }).join('') : '<div class="empty-state">Belum ada aktivitas.</div>';
     }
     if ($("riwayatList")) {
       $("riwayatList").innerHTML = accepted.filter(w => w.status === 'closed').map(w => renderCard(w, false)).join('') || '<div class="empty-state">Belum ada riwayat.</div>';

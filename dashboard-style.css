@@ -178,3 +178,263 @@ input[type="text"], input[type="number"], input[type="date"], textarea, select {
   font-size: .9rem;
 }
 .empty-state strong { display: block; margin-bottom: .35rem; color: var(--text); }
+
+/* ============================================
+   BOTTOM NAV (Mobile Only)
+   ============================================ */
+@media (max-width: 900px) {
+  .dash-layout {
+    padding-bottom: 70px; /* space for bottom nav */
+  }
+  
+  .dash-sidebar {
+    display: none; /* sembunyikan sidebar di mobile */
+  }
+  
+  .dash-content {
+    padding: 1rem;
+    padding-bottom: 5rem;
+  }
+  
+  /* Bottom Nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: .5rem 0;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0,0,0,.3);
+  }
+  
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .25rem;
+    padding: .5rem .75rem;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: .7rem;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all .15s;
+    flex: 1;
+  }
+  
+  .bottom-nav-item .nav-icon {
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+  
+  .bottom-nav-item.active {
+    color: var(--brand);
+    background: rgba(255,181,71,.1);
+  }
+  
+  .bottom-nav-item.active .nav-icon {
+    transform: scale(1.1);
+  }
+  
+  /* Hide hamburger di mobile karena gak butuh sidebar */
+  .dash-topbar .hamburger {
+    display: none;
+  }
+}
+
+@media (min-width: 901px) {
+  .bottom-nav {
+    display: none;
+  }
+}
+
+/* ============================================
+   HOME DASHBOARD STYLE (Gojek Inspired)
+   ============================================ */
+.home-greeting {
+  background: linear-gradient(135deg, rgba(255,181,71,.15), rgba(77,212,200,.05));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-greeting::before {
+  content: "";
+  position: absolute;
+  top: -30%; right: -10%;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(255,181,71,.2), transparent 70%);
+  border-radius: 50%;
+}
+
+.home-greeting h2 {
+  font-size: 1.1rem;
+  margin: 0 0 .25rem;
+}
+
+.home-greeting p {
+  margin: 0;
+  font-size: .85rem;
+  color: var(--muted);
+}
+
+/* Big stat cards */
+.stat-big {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+.stat-big-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .85rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-big-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.stat-big-card.garment::before { background: var(--brand); }
+.stat-big-card.konveksi::before { background: var(--brand-2); }
+
+.stat-big-icon {
+  font-size: 1.5rem;
+  margin-bottom: .35rem;
+}
+
+.stat-big-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.stat-big-label {
+  font-size: .7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  margin-top: .25rem;
+}
+
+/* Aksi Cepat */
+.quick-actions {
+  margin-bottom: 1rem;
+}
+
+.quick-actions h3 {
+  font-size: .85rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  margin: 0 0 .65rem;
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .65rem;
+}
+
+.quick-action {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .85rem .5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  transition: all .15s;
+}
+
+.quick-action:hover {
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+
+.quick-action-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.quick-action-label {
+  font-size: .7rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* Card Aktivitas Terbaru */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.activity-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: .85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem;
+}
+
+.activity-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-title {
+  font-weight: 700;
+  font-size: .9rem;
+  margin-bottom: .15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-meta {
+  font-size: .75rem;
+  color: var(--muted);
+}
+
+.activity-status {
+  font-size: .7rem;
+  padding: .25rem .5rem;
+  border-radius: 999px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  white-space: nowrap;
+}
+
+.activity-status.open { background: rgba(255,181,71,.15); color: var(--brand); }
+.activity-status.closed { background: rgba(52,211,153,.15); color: var(--ok); }
+
+/* Sembunyikan sidebar & desktop-only di mobile */
+@media (max-width: 900px) {
+  .desktop-only { display: none; }
+}
