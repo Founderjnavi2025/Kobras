@@ -39,8 +39,8 @@
   </section>
 
   <section class="dash-panel">
-    <div class="panel-head"><h2>Penawaran Pekerjaan Masuk</h2><p class="muted small">Pekerjaan dari garment yang sesuai kapasitas Anda.</p></div>
-    <div class="empty-state"><div class="empty-icon">◇</div><p>Belum ada penawaran masuk.</p><p class="muted small">Fitur marketplace segera hadir.</p></div>
+    <div class="panel-head"><h2>Daftar Surat Jalan</h2><p class="muted small">Ajukan kesediaan jika kapasitas Anda mencukupi untuk seluruh pesanan.</p></div>
+    <div id="konveksiWorkList"><div class="empty-state">Memuat...</div></div>
   </section>
 
   <section class="dash-panel">
@@ -70,5 +70,7 @@
     window.location.href = "index.html";
   });
 </script>
+<script src="dashboard.js"></script>
+<script>window.addEventListener("load", () => initDashboardData("konveksi"));</script>
 </body>
 </html>
