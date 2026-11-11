@@ -66,7 +66,7 @@
             <input name="deadline" type="date" style="flex:1; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
           </div>
           <input name="items" placeholder="Detail Bahan/Barang (Cth: Cotton Combed 30s)" required style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-          <input name="price_per_dozen" type="number" min="1" step="100" placeholder="Harga per Lusin (Rp) — Wajib" required style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
+          <input name="price_per_dozen" type="number" min="1000" placeholder="Harga per Lusin (Rp) — Wajib" required style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
           <input name="negotiable_note" placeholder="Catatan Nego (opsional)" style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
           <button type="submit" class="btn btn-primary">Terbitkan Surat Jalan</button>
         </form>
@@ -117,7 +117,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
-<script src="dashboard.js?v=201"></script>
+<script src="dashboard.js?v=202"></script>
 <script>
   KB.requireAuth("dashboard-garment");
   document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
