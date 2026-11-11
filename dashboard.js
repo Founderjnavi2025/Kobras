@@ -3,6 +3,16 @@
   if (!KB) return;
   const $ = (id) => document.getElementById(id);
 
+  function formatRp(n) {
+    return 'Rp ' + Number(n || 0).toLocaleString('id-ID', { maximumFractionDigits: 0 });
+  }
+  function estimateTotal(wo) {
+    const qty = Number(wo.target_quantity) || 0;
+    const price = Number(wo.price_per_dozen) || 0;
+    return (qty / 12) * price;
+  }
+
+
   window.switchTab = function(tab) {
     document.querySelectorAll('.tab-section').forEach(s => s.hidden = true);
     const target = $(`tab-${tab}`);
@@ -75,7 +85,10 @@
     if ($("statActive")) $("statActive").textContent = open.length;
     if ($("statDone")) $("statDone").textContent = closed.length;
     if ($("statQty")) $("statQty").textContent = all.reduce((s, w) => s + (w.target_quantity || 0), 0).toLocaleString('id-ID');
-    if ($("statApplicants")) $("statApplicants").textContent = all.reduce((s, w) => s + ((w.work_order_applications || []).filter(a => a.status === 'pending').length), 0);
+    if ($("statNilai")) {
+      const totalNilai = all.reduce((s, w) => s + estimateTotal(w), 0);
+      $("statNilai").textContent = formatRp(totalNilai);
+    }
 
     const renderCard = (wo) => {
       const items = (wo.work_order_items || []).map(i => i.name).join(', ');
@@ -89,11 +102,22 @@
       } else if (wo.status === 'closed' && accepted) {
         actionHtml = `<div class="small" style="color:var(--ok); margin-top:.5rem">✓ Dikerjakan oleh: <b>${accepted.organizations?.name}</b></div>`;
       }
+      const price = Number(wo.price_per_dozen) || 0;
+      const est = estimateTotal(wo);
+      const priceLine = price > 0
+        ? `<div style="font-size:.85rem; margin:.35rem 0; color:var(--brand)">💰 ${formatRp(price)} / lusin · Estimasi: <b>${formatRp(est)}</b></div>`
+        : `<div style="font-size:.85rem; margin:.35rem 0; color:var(--err)">⚠️ Harga belum disepakati</div>`;
+      const negoLine = wo.negotiable_note
+        ? `<div style="font-size:.8rem; font-style:italic; color:var(--muted); margin-bottom:.35rem">💬 ${wo.negotiable_note}</div>`
+        : '';
+
       return `<div class="sj-card">
         <div class="sj-card-header"><div class="sj-card-title">${wo.title}</div>
           <span class="badge ${wo.status === 'closed' ? 'badge-approved' : ''}">${wo.status.toUpperCase()}</span></div>
         <div class="sj-card-meta">${wo.target_quantity} pcs · Deadline: ${wo.deadline || '-'}</div>
         <div class="sj-card-items">${items || '-'}</div>
+        ${priceLine}
+        ${negoLine}
         ${actionHtml}
       </div>`;
     };
@@ -138,11 +162,22 @@
 
     const renderCard = (wo, showApply) => {
       const items = (wo.work_order_items || []).map(i => i.name).join(', ');
+      const price = Number(wo.price_per_dozen) || 0;
+      const est = estimateTotal(wo);
+      const priceLine = price > 0
+        ? `<div style="font-size:.85rem; margin:.35rem 0; color:var(--brand-2)">💰 ${formatRp(price)} / lusin · Estimasi: <b>${formatRp(est)}</b></div>`
+        : `<div style="font-size:.85rem; margin:.35rem 0; color:var(--err)">⚠️ Harga belum disepakati</div>`;
+      const negoLine = wo.negotiable_note
+        ? `<div style="font-size:.8rem; font-style:italic; color:var(--muted); margin-bottom:.35rem">💬 ${wo.negotiable_note}</div>`
+        : '';
+
       return `<div class="sj-card">
         <div class="sj-card-header"><div class="sj-card-title">${wo.title}</div>
           <span class="badge">${wo.target_quantity} pcs</span></div>
         <div class="sj-card-meta">Dari: ${wo.organizations?.name || '-'} · Deadline: ${wo.deadline || '-'}</div>
         <div class="sj-card-items">${items || '-'}</div>
+        ${priceLine}
+        ${negoLine}
         ${showApply ? `<button class="btn btn-outline btn-sm" style="margin-top:.5rem" onclick="KB.applyJob('${wo.id}', '${org.id}')">Ajukan Kesediaan</button>` : ''}
       </div>`;
     };
@@ -181,10 +216,15 @@
     if (!form.target_quantity.value) return KB.showToast('Qty wajib', 'error');
     if (!form.items.value.trim()) return KB.showToast('Bahan wajib', 'error');
     KB.setLoading(btn, true, 'Membuat...');
+    const price = parseFloat(form.price_per_dozen.value) || 0;
+    if (price <= 0) return KB.showToast('Harga per lusin wajib diisi', 'error');
+
     const { data: wo, error } = await KB.supabase.from('work_orders').insert({
       org_id: org.id, created_by: org.userId, title: form.title.value.trim(),
       target_quantity: parseInt(form.target_quantity.value),
-      deadline: form.deadline.value || null
+      deadline: form.deadline.value || null,
+      price_per_dozen: price,
+      negotiable_note: form.negotiable_note.value.trim() || null
     }).select().single();
     if (error) { KB.setLoading(btn, false, 'Terbitkan'); return KB.showToast(error.message, 'error'); }
     await KB.supabase.from('work_order_items').insert({ work_order_id: wo.id, name: form.items.value.trim() });
