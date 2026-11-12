@@ -190,6 +190,166 @@ function section(title) {
   }
 
   // ============================================
+  section('6. SIMULASI ALUR SURAT JALAN (E2E)');
+  // ============================================
+  
+  const testMarker = `AUDIT_SJ_${Date.now()}`;
+  let createdWoId = null;
+  let createdAppId = null;
+
+  if (org.type === 'garment') {
+    // ======== SEBAGAI GARMENT ========
+    add('ok', 'Mode: GARMENT', 'Kita bakal bikin SJ, cek status open, lalu hapus.');
+
+    // 6a. Bikin SJ
+    const { data: wo, error: insErr } = await sb.from('work_orders').insert({
+      org_id: org.id,
+      created_by: session.user.id,
+      title: testMarker,
+      description: 'Test deskripsi E2E',
+      target_quantity: 1000,
+      total_price: 4000000,
+      deadline: '2026-12-31',
+      address: 'Jl. Test No. 1',
+      pic_name: 'Budi Test',
+      pic_phone: '08123456789',
+      negotiable_note: 'Nego tipis oke',
+      status: 'open'
+    }).select().single();
+
+    if (insErr) {
+      add('bad', '✗ Bikin SJ gagal', insErr.message);
+    } else {
+      createdWoId = wo.id;
+      add('ok', '✓ SJ dibikin', `ID: ${wo.id.slice(0, 8)}...
+Status: ${wo.status}
+Target: ${wo.target_quantity} pcs
+Harga: Rp ${wo.total_price.toLocaleString('id-ID')}`);
+
+      // 6b. Cek semua kolom baru ada isinya
+      const fields = ['description', 'address', 'pic_name', 'pic_phone', 'total_price'];
+      let allFilled = true;
+      for (const f of fields) {
+        if (!wo[f]) { allFilled = false; add('bad', `✗ Kolom "${f}" kosong`, ''); }
+      }
+      if (allFilled) add('ok', '✓ Semua kolom terisi', fields.join(', '));
+
+      // 6c. Bikin item bahan
+      const { error: itemErr } = await sb.from('work_order_items').insert({
+        work_order_id: wo.id, name: 'Cotton Combed 30s'
+      });
+      if (itemErr) add('bad', '✗ Insert item bahan', itemErr.message);
+      else add('ok', '✓ Item bahan ditambah', 'Cotton Combed 30s');
+
+      // 6d. Cek SJ muncul di list open
+      const { data: openList } = await sb.from('work_orders').select('id').eq('status', 'open').eq('id', wo.id);
+      if (openList && openList.length > 0) add('ok', '✓ SJ muncul di list open', '');
+      else add('bad', '✗ SJ gak muncul di list open', 'RLS issue?');
+
+      // 6e. Cek status "matched" bisa di-set (simulasi "Terima")
+      const { error: matchedErr } = await sb.from('work_orders').update({ status: 'matched' }).eq('id', wo.id);
+      if (matchedErr) add('bad', '✗ Update ke "matched"', matchedErr.message);
+      else add('ok', '✓ Update status ke "matched"', 'Simulasi terima Konveksi berhasil');
+
+      // 6f. Cek "in_progress" bisa di-set
+      const { error: progErr } = await sb.from('work_orders').update({ status: 'in_progress' }).eq('id', wo.id);
+      if (progErr) add('bad', '✗ Update ke "in_progress"', progErr.message);
+      else add('ok', '✓ Update status ke "in_progress"', '');
+
+      // 6g. Cek "completed" bisa di-set
+      const { error: compErr } = await sb.from('work_orders').update({ status: 'completed' }).eq('id', wo.id);
+      if (compErr) add('bad', '✗ Update ke "completed"', compErr.message);
+      else add('ok', '✓ Update status ke "completed"', 'Siklus lengkap ok');
+
+      // 6h. Simulasi tanpa lamaran (harus error)
+      const { error: acceptErr } = await sb.rpc('accept_application_with_survey', {
+        p_app_id: '00000000-0000-0000-0000-000000000000',
+        p_survey_date: '2026-01-01'
+      });
+      if (acceptErr && acceptErr.message.includes('tidak ditemukan')) {
+        add('ok', '✓ RPC nolak UUID dummy', 'Bagus, validasi jalan');
+      } else {
+        add('warn', '⚠ RPC gak nolak UUID dummy', 'Cek validasi RPC');
+      }
+
+    }
+  } else if (org.type === 'konveksi') {
+    // ======== SEBAGAI KONVEKSI ========
+    add('ok', 'Mode: KONVEKSI', 'Kita bakal cari SJ open, lamar, lalu cek status.');
+
+    // 6a. Cari SJ open
+    const { data: openWos, error: openErr } = await sb.from('work_orders').select('id, title').eq('status', 'open').limit(1);
+    if (openErr) {
+      add('bad', '✗ Query SJ open', openErr.message);
+    } else if (!openWos || openWos.length === 0) {
+      add('warn', '⚠ Gak ada SJ open', 'Login sebagai Garment dulu, bikin SJ, baru balik ke sini');
+    } else {
+      add('ok', '✓ Ketemu SJ open', `Judul: ${openWos[0].title}`);
+      createdWoId = openWos[0].id;
+
+      // 6b. Cek apakah udah pernah lamar
+      const { data: existing } = await sb.from('work_order_applications')
+        .select('id').eq('work_order_id', createdWoId).eq('org_id', org.id).maybeSingle();
+
+      if (existing) {
+        add('warn', '⚠ Sudah pernah lamar SJ ini', 'Skip test lamar');
+        createdAppId = existing.id;
+      } else {
+        // 6c. Kirim lamaran (komentar)
+        const { data: app, error: appErr } = await sb.from('work_order_applications').insert({
+          work_order_id: createdWoId,
+          org_id: org.id,
+          message: 'AUDIT: Sanggup bos'
+        }).select().single();
+
+        if (appErr) {
+          add('bad', '✗ Kirim lamaran gagal', appErr.message);
+        } else {
+          createdAppId = app.id;
+          add('ok', '✓ Lamaran terkirim', `Status: ${app.status}
+Message: ${app.message.slice(0, 20)}...`);
+
+          // 6d. Cek status pending
+          if (app.status === 'pending') add('ok', '✓ Status lamaran = pending', 'Sesuai ekspektasi');
+          else add('bad', '✗ Status lamaran bukan pending', `Dapat: ${app.status}`);
+
+          // 6e. Cek gak bisa lamar 2x
+          const { error: dupErr } = await sb.from('work_order_applications').insert({
+            work_order_id: createdWoId, org_id: org.id, message: 'dup'
+          });
+          if (dupErr) add('ok', '✓ Gak bisa lamar 2x', 'Constraint unique jalan');
+          else add('bad', '✗ Bisa lamar 2x', 'Constraint unique gak jalan!');
+        }
+      }
+
+      // 6f. Cek konveksi bisa lihat SJ yang dia lamar (via policy baru)
+      const { data: myApps } = await sb.from('work_order_applications')
+        .select('work_order_id, status, work_orders(id, title, status)')
+        .eq('org_id', org.id).eq('status', 'accepted').limit(1);
+      
+      if (myApps && myApps.length > 0) {
+        add('ok', '✓ Lihat SJ yang dimenangkan', `Judul: ${myApps[0].work_orders?.title}`);
+      } else {
+        add('warn', '⚠ Belum ada SJ yang dimenangkan', 'Butuh Garment untuk terima lamaran dulu');
+      }
+    }
+  } else {
+    add('warn', '⚠ Role tidak dikenal', `org.type: ${org.type}`);
+  }
+
+  // ======== CLEANUP (hapus data uji) ========
+  if (createdAppId) {
+    await sb.from('work_order_applications').delete().eq('id', createdAppId);
+    add('ok', '✓ Cleanup lamaran uji', '');
+  }
+  if (createdWoId && org.type === 'garment') {
+    await sb.from('work_order_items').delete().eq('work_order_id', createdWoId);
+    await sb.from('work_order_applications').delete().eq('work_order_id', createdWoId);
+    await sb.from('work_orders').delete().eq('id', createdWoId);
+    add('ok', '✓ Cleanup SJ uji', '');
+  }
+
+  // ============================================
   // KESIMPULAN
   // ============================================
   section('KESIMPULAN');
