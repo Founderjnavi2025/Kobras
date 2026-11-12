@@ -191,12 +191,29 @@
       .eq('status', 'open').order('created_at', { ascending: false });
 
     // 2. Ambil WO yang udah dimenangkan (status accepted)
-    const { data: myApps } = await KB.supabase.from('work_order_applications')
-      .select('work_order_id, work_orders(id, title, target_quantity, total_price, status, organizations!work_orders_org_id_fkey(name))')
+    // JANGAN join organizations, pakai RPC
+    const { data: myApps, error: myAppsError } = await KB.supabase
+      .from('work_order_applications')
+      .select('work_order_id, work_orders(id, title, target_quantity, total_price, status, org_id)')
       .eq('org_id', org.id).eq('status', 'accepted');
 
+    if (myAppsError) {
+      console.error('[KO-BRAS] myApps error:', myAppsError);
+    }
+
     const open = openRaw || [];
-    const wonList = (myApps || []).map(a => a.work_orders).filter(Boolean);
+    let wonList = (myApps || []).map(a => a.work_orders).filter(Boolean);
+
+    // Inject nama Garment via RPC
+    if (wonList.length > 0) {
+      const garmentIds = [...new Set(wonList.map(w => w.org_id).filter(Boolean))];
+      if (garmentIds.length > 0) {
+        const { data: garmentOrgs } = await KB.supabase.rpc('get_orgs_public', { p_ids: garmentIds });
+        const garmentMap = {};
+        (garmentOrgs || []).forEach(o => garmentMap[o.id] = o);
+        wonList = wonList.map(w => ({ ...w, organizations: garmentMap[w.org_id] || null }));
+      }
+    }
 
     // Update Stats
     if ($("statAvailable")) $("statAvailable").textContent = open.length;
