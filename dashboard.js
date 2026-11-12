@@ -185,76 +185,72 @@
 
   // ============ KONVEKSI ============
   async function loadKonveksi(org) {
-    // 1. Ambil semua WO yang open (buat dilamar)
+    // 1. Ambil WO open (buat tab Masuk)
     const { data: openRaw } = await KB.supabase.from('work_orders')
-      .select('id, title, target_quantity, total_price, organizations!work_orders_org_id_fkey(name)')
+      .select('id, title, target_quantity, total_price, description, organizations!work_orders_org_id_fkey(name)')
       .eq('status', 'open').order('created_at', { ascending: false });
 
-    // 2. Ambil WO yang udah dimenangkan konveksi ini
+    // 2. Ambil WO yang udah dimenangkan (status accepted)
     const { data: myApps } = await KB.supabase.from('work_order_applications')
-      .select('work_order_id, status, work_orders(id, title, target_quantity, status, organizations!work_orders_org_id_fkey(name))')
+      .select('work_order_id, status, work_orders(id, title, target_quantity, total_price, description, status, organizations!work_orders_org_id_fkey(name))')
       .eq('org_id', org.id).eq('status', 'accepted');
 
     const open = openRaw || [];
     const wonList = (myApps || []).map(a => a.work_orders).filter(Boolean);
 
+    // Update Stats
     if ($("statAvailable")) $("statAvailable").textContent = open.length;
-    if ($("statActive")) $("statActive").textContent = wonList.filter(w => w.status === 'closed').length;
+    if ($("statActive")) $("statActive").textContent = wonList.filter(w => w.status === 'closed').length; // Dikerjakan
+    if ($("statDone")) $("statDone").textContent = 0; // Selesai nanti
 
-    // Render List Utama (gabungan open + won)
+    // Render tab "Masuk" (Daftar Surat Jalan Open)
     if ($("konveksiWorkList")) {
-      let html = '';
-
-      // Render yang menang dulu (dengan notif khusus)
-      if (wonList.length > 0) {
-        html += '<h3 style="font-size:.85rem; color:var(--ok); text-transform:uppercase; margin:0 0 .5rem; letter-spacing:.05em;">🎉 Proyek Dimenangkan</h3>';
-        html += wonList.map(wo => `
-          <div class="activity-item" style="cursor:pointer; border-left:3px solid var(--ok); background:#ecfdf5;" onclick="window.openSJDetail('${wo.id}')">
-            <div class="activity-info">
-              <div class="activity-title">${wo.title}</div>
-              <div class="activity-meta">${wo.target_quantity} pcs · Dari: ${wo.organizations?.name || '-'} · <b style="color:var(--ok)">MENANG</b></div>
-            </div>
-            <div style="color:var(--ok); font-size:1.2rem">›</div>
+      $("konveksiWorkList").innerHTML = open.length ? open.map(wo => `
+        <div class="activity-item" style="cursor:pointer" onclick="window.openSJDetail('${wo.id}')">
+          <div class="activity-info">
+            <div class="activity-title">${wo.title}</div>
+            <div class="activity-meta">${wo.target_quantity} pcs · Dari: ${wo.organizations?.name || '-'}</div>
           </div>
-        `).join('');
-        html += '<div style="margin:1.25rem 0 .5rem; border-top:1px solid var(--border)"></div>';
-      }
-
-      // Render yang open
-      if (open.length > 0) {
-        html += '<h3 style="font-size:.85rem; color:var(--muted); text-transform:uppercase; margin:0 0 .5rem; letter-spacing:.05em;">Surat Jalan Tersedia</h3>';
-        html += open.map(wo => `
-          <div class="activity-item" style="cursor:pointer" onclick="window.openSJDetail('${wo.id}')">
-            <div class="activity-info">
-              <div class="activity-title">${wo.title}</div>
-              <div class="activity-meta">${wo.target_quantity} pcs · Dari: ${wo.organizations?.name || '-'}</div>
-            </div>
-            <div style="color:var(--muted); font-size:1.2rem">›</div>
-          </div>
-        `).join('');
-      }
-
-      $("konveksiWorkList").innerHTML = html || '<div class="empty-state">Belum ada Surat Jalan.</div>';
+          <div style="color:var(--muted); font-size:1.2rem">›</div>
+        </div>
+      `).join('') : '<div class="empty-state">Belum ada Surat Jalan tersedia.</div>';
     }
 
-    // Render Overview (di beranda)
+    // Render tab "Kerja" (Dikerjakan)
+    if ($("inProgressList")) {
+      $("inProgressList").innerHTML = wonList.length ? wonList.map(wo => `
+        <div class="activity-item" style="cursor:pointer; border-left:3px solid var(--ok); background:#ecfdf5;" onclick="window.openSJDetail('${wo.id}')">
+          <div class="activity-info">
+            <div class="activity-title">${wo.title}</div>
+            <div class="activity-meta">${wo.target_quantity} pcs · Dari: ${wo.organizations?.name || '-'}</div>
+          </div>
+          <div style="color:var(--ok); font-size:1.2rem">›</div>
+        </div>
+      `).join('') : '<div class="empty-state">Belum ada pekerjaan aktif.</div>';
+    }
+
+    // Render tab "Riwayat" (Placeholder dulu, karena belum ada fitur selesai)
+    if ($("riwayatList")) {
+      $("riwayatList").innerHTML = '<div class="empty-state">Belum ada riwayat pekerjaan selesai.</div>';
+    }
+
+    // Render Overview
     if ($("overviewList")) {
-      const combined = [...wonList, ...open];
-      $("overviewList").innerHTML = combined.slice(0, 3).map(wo => {
-        const isWon = wonList.some(w => w.id === wo.id);
-        return `
-        <div class="activity-item" onclick="window.openSJDetail('${wo.id}')" style="cursor:pointer; ${isWon ? 'background:#ecfdf5;' : ''}">
+      $("overviewList").innerHTML = open.slice(0, 3).map(wo => `
+        <div class="activity-item" onclick="window.openSJDetail('${wo.id}')" style="cursor:pointer">
           <div class="activity-info">
             <div class="activity-title">${wo.title}</div>
             <div class="activity-meta">${wo.target_quantity} pcs</div>
           </div>
-          <span class="activity-status ${isWon ? 'closed' : 'open'}">${isWon ? 'MENANG' : 'OPEN'}</span>
+          <span class="activity-status open">OPEN</span>
         </div>
-      `}).join('') || '<div class="empty-state">Belum ada aktivitas.</div>';
+      `).join('') || '<div class="empty-state">Belum ada aktivitas.</div>';
     }
   }
 
-  // --- B. Fungsi buka Detail SJ ---
+  // ============================================
+  // FUNGSI DETAIL KONVEKSI (Notifikasi Menang & Paywall)
+  // ============================================
   window.openSJDetail = async function(woId) {
     switchTab('detail-sj');
     const container = document.getElementById("sjDetailContent");
@@ -263,20 +259,17 @@
     const org = await getMyOrg();
     if (!org) return;
 
-    // Ambil data WO lengkap + item + lamaran (komentar)
     const { data: wo, error } = await KB.supabase.from('work_orders')
       .select('*, work_order_items(name), work_order_applications(id, status, org_id, message, applied_at)')
       .eq('id', woId).single();
 
-    // Ambil nama Garment via RPC (karena RLS blok join langsung)
+    if (error) { container.innerHTML = `<div class="empty-state" style="color:var(--err)">Error: ${error.message}</div>`; return; }
+
     if (wo && wo.org_id) {
       const { data: garmentOrgs } = await KB.supabase.rpc('get_orgs_public', { p_ids: [wo.org_id] });
       wo.organizations = (garmentOrgs && garmentOrgs[0]) || null;
     }
 
-    if (error) { container.innerHTML = `<div class="empty-state" style="color:var(--err)">Error: ${error.message}</div>`; return; }
-
-    // Ambil nama-nama pelamar (buat komentar)
     const appOrgIds = (wo.work_order_applications || []).map(a => a.org_id);
     let orgMap = {};
     if (appOrgIds.length > 0) {
@@ -284,14 +277,11 @@
       (orgs || []).forEach(o => orgMap[o.id] = o);
     }
 
-    // Cek status lamaran gue
     const myApp = (wo.work_order_applications || []).find(a => a.org_id === org.id);
     
-    // Format tanggal
     const fmtDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) : '-';
     const fmtTime = (d) => d ? new Date(d).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) : '';
 
-    // Render Komentar
     const commentsHtml = (wo.work_order_applications || []).map(a => {
       const isMe = a.org_id === org.id;
       const name = orgMap[a.org_id]?.name || 'Konveksi';
@@ -307,6 +297,31 @@
       `;
     }).join('');
 
+    let ctaHtml = '';
+    if (wo.status === 'open') {
+      if (!myApp) {
+        ctaHtml = `
+          <div style="position:sticky; bottom:0; background:var(--surface); padding-top:1rem; border-top:1px solid var(--border);">
+            <textarea id="applyMessage" placeholder="Tulis kesediaan Anda (Cth: Sanggup bos, 1000pcs 4jt, minggu depan jalan)" rows="3" style="width:100%; padding:.75rem; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:inherit; resize:none; margin-bottom:.5rem;"></textarea>
+            <button class="btn btn-primary btn-block" onclick="window.submitApplication('${wo.id}', '${org.id}')">Kirim Ajuan Kesediaan</button>
+          </div>`;
+      } else {
+        ctaHtml = `<div class="empty-state small" style="background:var(--surface-2); border-radius:8px; padding:1rem; border:1px solid var(--border)">Anda sudah mengajukan kesediaan. Menunggu review.</div>`;
+      }
+    } else if (wo.status === 'closed') {
+      if (myApp && myApp.status === 'accepted') {
+        ctaHtml = `
+          <div style="background:#ecfdf5; border:1px solid #10b981; border-radius:var(--radius); padding:1.25rem; text-align:center;">
+            <div style="font-size:2rem; margin-bottom:.5rem">🎉</div>
+            <h3 style="font-size:1.1rem; margin:0 0 .5rem; color:#065f46;">Selamat! Anda Terpilih</h3>
+            <p class="small" style="margin:0 0 1rem; color:#065f46;">Garment telah memilih Anda. Silakan buka Room Eksklusif untuk mulai produksi.</p>
+            <button class="btn btn-primary btn-block" onclick="KB.showToast('Fitur bayar Room (Rp 30.000) akan segera hadir!', 'success')">Beli Room (Rp 30.000)</button>
+          </div>`;
+      } else {
+        ctaHtml = `<div class="empty-state small" style="background:var(--surface-2); border-radius:8px; padding:1rem; border:1px solid var(--border)">Maaf, Anda belum terpilih untuk proyek ini.</div>`;
+      }
+    }
+
     container.innerHTML = `
       <div style="margin-bottom:1.5rem;">
         <h2 style="margin:0 0 .5rem">${wo.title}</h2>
@@ -316,18 +331,14 @@
       <div style="background:var(--surface-2); padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid var(--border);">
         <h3 style="font-size:.9rem; margin:0 0 .75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;">Detail Pekerjaan</h3>
         <p style="margin:0 0 .5rem; font-size:.95rem;">${wo.description || 'Tidak ada deskripsi.'}</p>
-        
         <div style="display:flex; justify-content:space-between; font-size:.9rem; margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--border);">
           <span>Target: <b>${wo.target_quantity} pcs</b></span>
           <span>Bahan: <b>${(wo.work_order_items||[]).map(i=>i.name).join(', ') || '-'}</b></span>
         </div>
         <div style="display:flex; justify-content:space-between; font-size:.9rem; margin-top:.5rem;">
-          <span>Harga: <b style="color:var(--brand)">${formatRp(wo.total_price)}</b> (Borongan)</span>
-          <span>Setara <b>${formatRp((wo.total_price||0)/wo.target_quantity)}/pcs</b></span>
+          <span>Harga: <b style="color:var(--brand)">${formatRp(wo.total_price)}</b></span>
         </div>
         ${wo.negotiable_note ? `<div class="small" style="margin-top:.5rem; font-style:italic; color:var(--muted)">💬 ${wo.negotiable_note}</div>` : ''}
-        
-        <!-- INFO TAMBAHAN (SCOPE) -->
         <div style="margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--border);">
           <div style="font-size:.85rem; margin-bottom:.5rem;">
             <span style="color:var(--muted)">Alamat Jemput/Kirim:</span><br>
@@ -347,38 +358,12 @@
         </div>
       </div>
 
-      ${!myApp ? `
-        <div style="position:sticky; bottom:0; background:var(--surface); padding-top:1rem; border-top:1px solid var(--border);">
-          <textarea id="applyMessage" placeholder="Tulis kesediaan Anda (Cth: Sanggup bos, 1000pcs 4jt, minggu depan jalan)" rows="3" style="width:100%; padding:.75rem; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:inherit; resize:none; margin-bottom:.5rem;"></textarea>
-          <button class="btn btn-primary btn-block" onclick="window.submitApplication('${wo.id}', '${org.id}')">Kirim Ajuan Kesediaan</button>
-        </div>
-      ` : `<div class="empty-state small" style="background:var(--surface-2); border-radius:8px; padding:1rem; border:1px solid var(--border)">Anda sudah mengajukan kesediaan.</div>`}
+      ${ctaHtml}
     `;
 
-    // Listener back button
     document.getElementById("backToSJList").onclick = () => switchTab('surat-jalan');
   };
 
-  // --- C. Fungsi kirim lamaran + komentar ---
-  window.submitApplication = async function(woId, orgId) {
-    const msg = document.getElementById("applyMessage").value.trim();
-    if (!msg) return KB.showToast("Tulis pesan kesediaan dulu", "error");
-
-    const btn = event.target;
-    KB.setLoading(btn, true, "Mengirim...");
-
-    const { error } = await KB.supabase.from('work_order_applications').insert({
-      work_order_id: woId, org_id: orgId, message: msg
-    });
-
-    if (error) {
-      KB.setLoading(btn, false, "Kirim Ajuan Kesediaan");
-      return KB.showToast(error.code === '23505' ? 'Anda sudah mengajukan ini.' : error.message, 'error');
-    }
-
-    KB.showToast("Ajuan berhasil dikirim!", "success");
-    window.openSJDetail(woId); // Refresh halaman detail
-  };
   KB.applyJob = async function(woId, orgId) {
     if (!confirm('Sanggup mengerjakan SELURUH pesanan ini?')) return;
     const { error } = await KB.supabase.from('work_order_applications').insert({ work_order_id: woId, org_id: orgId });
@@ -569,6 +554,7 @@
     if (!container) return;
     container.innerHTML = '<div class="empty-state">Memuat Room...</div>';
 
+    // Query work order lengkap
     const { data: wo, error } = await KB.supabase.from('work_orders')
       .select('*, work_order_applications(status, org_id, message)')
       .eq('id', workOrderId).single();
@@ -614,6 +600,7 @@
 
     document.getElementById("backToGarmentListRoom").onclick = () => switchTab('surat-jalan');
   };
+
 
   window.initDashboardData = async function(type) {
     const org = await getMyOrg();
