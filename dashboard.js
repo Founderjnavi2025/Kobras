@@ -110,7 +110,7 @@
     }
     const all = wos || [];
     const open = all.filter(w => w.status === 'open');
-    const closed = all.filter(w => w.status === 'closed');
+    const closed = all.filter(w => w.status === 'matched');
 
     if ($("statActive")) $("statActive").textContent = open.length;
     if ($("statDone")) $("statDone").textContent = closed.length;
@@ -129,7 +129,7 @@
         actionHtml = `<div style="margin-top:.5rem"><strong class="small">Pelamar (${pendingApps.length}):</strong>
           ${pendingApps.map(a => `<div class="applicant-item"><span class="small">${a.organizations?.name || 'Konveksi'}</span>
           <button class="btn btn-primary btn-sm" onclick="KB.acceptApp('${a.id}')">Terima</button></div>`).join('')}</div>`;
-      } else if (wo.status === 'closed' && accepted) {
+      } else if (wo.status === 'matched' && accepted) {
         const konveksiName = accepted.organizations?.name || 'Konveksi (data tidak tersedia)';
         actionHtml = `<div class="small" style="color:var(--ok); margin-top:.5rem">✓ Dikerjakan oleh: <b>${konveksiName}</b></div>`;
       }
@@ -146,7 +146,7 @@
 
       return `<div class="sj-card" style="cursor:pointer" onclick="window.openSJDetailGarment('${wo.id}')">
         <div class="sj-card-header"><div class="sj-card-title">${wo.title}</div>
-          <span class="badge ${wo.status === 'closed' ? 'badge-approved' : ''}">${wo.status.toUpperCase()}</span></div>
+          <span class="badge ${wo.status === 'matched' ? 'badge-approved' : ''}">${wo.status.toUpperCase()}</span></div>
         <div class="sj-card-meta">${wo.target_quantity} pcs · Deadline: ${wo.deadline || '-'}</div>
         <div class="sj-card-items">${items || '-'}</div>
         ${priceLine}
