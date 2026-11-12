@@ -94,15 +94,49 @@
       <div class="card">
         <div class="card-head"><h2>Buat Surat Jalan Baru</h2><p>Isi detail pekerjaan yang akan dilempar ke konveksi.</p></div>
         <form id="createWorkForm" style="display:flex; flex-direction:column; gap:.75rem">
-          <input name="title" placeholder="Judul Pekerjaan (Cth: Kaos Oblong)" required style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
+          <label style="font-size:.85rem; color:var(--muted)">Judul Pekerjaan
+            <input name="title" placeholder="Cth: Kaos Oblong Combed 30s" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px">
+          </label>
+          
+          <label style="font-size:.85rem; color:var(--muted)">Deskripsi / Brief
+            <textarea name="description" placeholder="Detail pekerjaan: sablon apa, jahitan, lipatan, dll." rows="3" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px; font-family:inherit; resize:vertical"></textarea>
+          </label>
+
           <div style="display:flex; gap:.5rem">
-            <input name="target_quantity" type="number" placeholder="Target Qty (pcs)" required min="1" style="flex:1; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-            <input name="deadline" type="date" style="flex:1; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
+            <label style="font-size:.85rem; color:var(--muted); flex:1;">Target Qty (pcs)
+              <input name="target_quantity" type="number" min="1" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px">
+            </label>
+            <label style="font-size:.85rem; color:var(--muted); flex:1;">Deadline
+              <input name="deadline" type="date" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px">
+            </label>
           </div>
-          <input name="items" placeholder="Detail Bahan/Barang (Cth: Cotton Combed 30s)" required style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-          <input name="total_price" type="number" min="1000" step="1" placeholder="Total Harga Borongan (Rp) — Wajib" required style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-          <input name="negotiable_note" placeholder="Catatan Nego (opsional, Cth: Nego tipis oke)" style="padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:white; border-radius:6px">
-          <button type="submit" class="btn btn-primary">Terbitkan Surat Jalan</button>
+
+          <label style="font-size:.85rem; color:var(--muted)">Detail Bahan
+            <input name="items" placeholder="Cth: Cotton Combed 30s, 24s" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px">
+          </label>
+
+          <label style="font-size:.85rem; color:var(--muted)">Alamat (Jemput Bahan / Kirim Barang)
+            <input name="address" placeholder="Cth: Jl. Soekarno Hatta No. 12, Bandung" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px">
+          </label>
+
+          <div style="display:flex; gap:.5rem">
+            <label style="font-size:.85rem; color:var(--muted); flex:1;">Nama PIC
+              <input name="pic_name" placeholder="Cth: Budi" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px">
+            </label>
+            <label style="font-size:.85rem; color:var(--muted); flex:1;">No. WA PIC
+              <input name="pic_phone" type="tel" placeholder="0812..." required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px">
+            </label>
+          </div>
+
+          <label style="font-size:.85rem; color:var(--muted)">Total Harga Borongan (Rp)
+            <input name="total_price" type="number" min="1000" step="1" placeholder="Cth: 4000000" required style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px">
+          </label>
+
+          <label style="font-size:.85rem; color:var(--muted)">Catatan Nego (Opsional)
+            <input name="negotiable_note" placeholder="Cth: Nego tipis oke" style="width:100%; margin-top:.35rem; padding:.65rem; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:6px">
+          </label>
+
+          <button type="submit" class="btn btn-primary" style="margin-top:.5rem">Terbitkan Surat Jalan</button>
         </form>
       </div>
       <div class="card">
@@ -158,7 +192,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
-<script src="dashboard.js?v=500"></script>
+<script src="dashboard.js?v=502"></script>
 <script>
   KB.requireAuth("dashboard-garment");
   document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };

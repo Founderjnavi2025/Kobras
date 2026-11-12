@@ -285,6 +285,18 @@
           <span>Setara <b>${formatRp((wo.total_price||0)/wo.target_quantity)}/pcs</b></span>
         </div>
         ${wo.negotiable_note ? `<div class="small" style="margin-top:.5rem; font-style:italic; color:var(--muted)">💬 ${wo.negotiable_note}</div>` : ''}
+        
+        <!-- INFO TAMBAHAN (SCOPE) -->
+        <div style="margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--border);">
+          <div style="font-size:.85rem; margin-bottom:.5rem;">
+            <span style="color:var(--muted)">Alamat Jemput/Kirim:</span><br>
+            <b>${wo.address || '-'}</b>
+          </div>
+          <div style="font-size:.85rem;">
+            <span style="color:var(--muted)">PIC:</span><br>
+            <b>${wo.pic_name || '-'}</b> · <a href="https://wa.me/${wo.pic_phone?.replace(/^0/, '62')}" target="_blank" style="color:var(--brand); text-decoration:underline">${wo.pic_phone || '-'}</a>
+          </div>
+        </div>
       </div>
 
       <div style="margin-bottom:1.5rem;">
@@ -342,27 +354,49 @@
     const btn = form.querySelector('button[type="submit"]');
     const org = await getMyOrg();
     if (!org) return KB.showToast('Organisasi tidak ditemukan', 'error');
-    if (!form.title.value.trim()) return KB.showToast('Judul wajib', 'error');
-    if (!form.target_quantity.value) return KB.showToast('Qty wajib', 'error');
-    if (!form.items.value.trim()) return KB.showToast('Bahan wajib', 'error');
-    KB.setLoading(btn, true, 'Membuat...');
-    const totalPrice = parseFloat(form.total_price.value) || 0;
-    if (totalPrice <= 0) return KB.showToast('Total harga wajib diisi', 'error');
+
+    // Validasi
+    if (!form.title.value.trim()) return KB.showToast('Judul wajib diisi', 'error');
+    if (!form.target_quantity.value) return KB.showToast('Target Qty wajib diisi', 'error');
+    if (!form.items.value.trim()) return KB.showToast('Bahan wajib diisi', 'error');
+    if (!form.address.value.trim()) return KB.showToast('Alamat wajib diisi', 'error');
+    if (!form.pic_name.value.trim()) return KB.showToast('Nama PIC wajib diisi', 'error');
+    if (!form.pic_phone.value.trim()) return KB.showToast('No WA PIC wajib diisi', 'error');
+    if (!form.total_price.value) return KB.showToast('Total harga wajib diisi', 'error');
+
+    KB.setLoading(btn, true, 'Menerbitkan...');
 
     const { data: wo, error } = await KB.supabase.from('work_orders').insert({
-      org_id: org.id, created_by: org.userId, title: form.title.value.trim(),
+      org_id: org.id, 
+      created_by: org.userId, 
+      title: form.title.value.trim(),
+      description: form.description.value.trim() || null,
       target_quantity: parseInt(form.target_quantity.value),
       deadline: form.deadline.value || null,
-      total_price: totalPrice,
+      address: form.address.value.trim(),
+      pic_name: form.pic_name.value.trim(),
+      pic_phone: form.pic_phone.value.trim(),
+      total_price: parseFloat(form.total_price.value),
       negotiable_note: form.negotiable_note.value.trim() || null
     }).select().single();
-    if (error) { KB.setLoading(btn, false, 'Terbitkan'); return KB.showToast(error.message, 'error'); }
-    await KB.supabase.from('work_order_items').insert({ work_order_id: wo.id, name: form.items.value.trim() });
+
+    if (error) { 
+      KB.setLoading(btn, false, 'Terbitkan Surat Jalan'); 
+      return KB.showToast(error.message, 'error'); 
+    }
+
+    // Simpan item bahan
+    await KB.supabase.from('work_order_items').insert({ 
+      work_order_id: wo.id, 
+      name: form.items.value.trim() 
+    });
+
     KB.showToast('Surat Jalan diterbitkan!', 'success');
     form.reset();
     KB.setLoading(btn, false, 'Terbitkan Surat Jalan');
     loadGarment(org);
   };
+
 
   // ============ INIT ============
   window.initDashboardData = async function(type) {
