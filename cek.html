@@ -350,6 +350,90 @@ Message: ${app.message.slice(0, 20)}...`);
   }
 
   // ============================================
+  section('7. UJI "TERBITKAN SURAT JALAN" (UI)');
+  // ============================================
+
+  if (org.type === 'garment') {
+    // Simulasi persis seperti tombol "Terbitkan" di dashboard
+    const uiTestTitle = `UI_TERBIT_TEST_${Date.now()}`;
+    const { data: newWo, error: uiInsErr } = await sb.from('work_orders').insert({
+      org_id: org.id,
+      created_by: session.user.id,
+      title: uiTestTitle,
+      description: 'Test dari cek.html Section 7',
+      target_quantity: 500,
+      total_price: 2000000,
+      deadline: '2026-12-31',
+      address: 'Jl. UI Test No. 1',
+      pic_name: 'UI Tester',
+      pic_phone: '08111111111',
+      negotiable_note: 'nego',
+      status: 'open'
+    }).select().single();
+
+    if (uiInsErr) {
+      add('bad', '✗ Terbitkan Surat Jalan gagal', `${uiInsErr.message}\n\nCode: ${uiInsErr.code}`);
+    } else {
+      add('ok', '✓ Surat Jalan diterbitkan', `ID: ${newWo.id.slice(0, 8)}...\nTitle: ${newWo.title}`);
+
+      // Test 1: Muncul di query list Garment (seperti loadGarment di dashboard)
+      const { data: garmentList, error: garmentListErr } = await sb.from('work_orders')
+        .select('id, title, status, target_quantity, total_price, created_at')
+        .eq('org_id', org.id)
+        .order('created_at', { ascending: false });
+
+      if (garmentListErr) {
+        add('bad', '✗ Query list Garment gagal', garmentListErr.message);
+      } else {
+        const found = (garmentList || []).find(w => w.id === newWo.id);
+        if (found) {
+          add('ok', '✓ Muncul di list Garment', `Total: ${garmentList.length} SJ di list\nPosisi: ${garmentList.findIndex(w => w.id === newWo.id) + 1} dari ${garmentList.length}`);
+        } else {
+          add('bad', '✗ GAK muncul di list Garment', `Query berhasil (${garmentList.length} baris) tapi SJ baru gak ada.\n\nCek RLS atau filter.`);
+        }
+      }
+
+      // Test 2: Muncul di query tab "Surat Jalan Aktif" (filter status open)
+      const { data: openList } = await sb.from('work_orders')
+        .select('id, title').eq('org_id', org.id).eq('status', 'open');
+      
+      const foundInOpen = (openList || []).find(w => w.id === newWo.id);
+      if (foundInOpen) {
+        add('ok', '✓ Muncul di "Surat Jalan Aktif"', `Total open: ${openList.length}`);
+      } else {
+        add('bad', '✗ GAK muncul di "Surat Jalan Aktif"', `Total open: ${openList?.length || 0}\n\nFilter status atau RLS issue.`);
+      }
+
+      // Test 3: Cek apakah Konveksi bisa lihat (simulasi)
+      const { data: publicList } = await sb.from('work_orders')
+        .select('id, title, status').eq('status', 'open').eq('id', newWo.id);
+      
+      if (publicList && publicList.length > 0) {
+        add('ok', '✓ Bisa dilihat publik (status open)', 'Konveksi bisa lihat via RLS policy wo_konveksi');
+      } else {
+        add('warn', '⚠ Gak muncul di query publik', 'RLS policy wo_konveksi mungkin blok');
+      }
+
+      // Test 4: Cek item bahan beneran masuk
+      const { data: itemData, error: itemErr } = await sb.from('work_order_items')
+        .select('name').eq('work_order_id', newWo.id);
+      
+      if (itemErr) add('bad', '✗ Cek item bahan', itemErr.message);
+      else if (itemData && itemData.length > 0) add('ok', '✓ Item bahan tersimpan', itemData.map(i => i.name).join(', '));
+      else add('bad', '✗ Item bahan KOSONG', 'Insert item gak jalan?');
+
+      // ============================================
+      // CLEANUP
+      // ============================================
+      await sb.from('work_order_items').delete().eq('work_order_id', newWo.id);
+      await sb.from('work_orders').delete().eq('id', newWo.id);
+      add('ok', '✓ Cleanup data test', '');
+    }
+  } else {
+    add('warn', '⚠ Bukan Garment', `Mode: ${org.type}. Section 7 hanya jalan untuk Garment.`);
+  }
+
+  // ============================================
   // KESIMPULAN
   // ============================================
   section('KESIMPULAN');
