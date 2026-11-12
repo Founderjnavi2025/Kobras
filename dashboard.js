@@ -484,17 +484,9 @@
   // C. Fungsi terima lamaran (sudah ada di kode lama, sesuaikan)
   window.acceptApplication = async function(appId, isSurveyed) {
     try {
-      let notes = null;
-      let surveyDate = new Date().toISOString().split('T')[0]; // Default hari ini
-      
       if (!isSurveyed) {
         if (!confirm('Wajib survei fisik ke tempat konveksi. Lanjutkan?')) return;
-        const dateStr = prompt('Tanggal survei (YYYY-MM-DD):', surveyDate);
-        if (dateStr === null) return;
-        if (!dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return KB.showToast('Format tanggal salah', 'error');
-        surveyDate = dateStr;
-        
-        notes = prompt('Catatan survei (Cth: Tempat bersih, 5 mesin jahit):');
+        const notes = prompt('Catatan survei (Cth: Tempat bersih, 5 mesin jahit):');
         if (notes === null) return;
       } else {
         if (!confirm('Terima konveksi ini sebagai partner? Konveksi lain otomatis ditolak.')) return;
@@ -504,21 +496,20 @@
       
       const { error } = await KB.supabase.rpc('accept_application_with_survey', { 
         p_app_id: appId,
-        p_survey_date: surveyDate,
-        p_survey_notes: notes || '-'
+        p_survey_date: new Date().toISOString().split('T')[0],
+        p_survey_notes: isSurveyed ? '-' : 'Disurvei via aplikasi'
       });
 
       if (error) {
         console.error('RPC Error:', error);
-        return KB.showToast('Error: ' + error.message, 'error');
+        return KB.showToast('Gagal: ' + error.message, 'error');
       }
       
       KB.showToast('Konveksi diterima!', 'success');
-      
       setTimeout(() => location.reload(), 1000);
     } catch (err) {
       console.error('Exception:', err);
-      KB.showToast('Terjadi kesalahan: ' + err.message, 'error');
+      KB.showToast('Error: ' + err.message, 'error');
     }
   };
 
