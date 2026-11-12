@@ -185,37 +185,72 @@
 
   // ============ KONVEKSI ============
   async function loadKonveksi(org) {
+    // 1. Ambil semua WO yang open (buat dilamar)
     const { data: openRaw } = await KB.supabase.from('work_orders')
       .select('id, title, target_quantity, total_price, organizations!work_orders_org_id_fkey(name)')
       .eq('status', 'open').order('created_at', { ascending: false });
 
+    // 2. Ambil WO yang udah dimenangkan konveksi ini
+    const { data: myApps } = await KB.supabase.from('work_order_applications')
+      .select('work_order_id, status, work_orders(id, title, target_quantity, status, organizations!work_orders_org_id_fkey(name))')
+      .eq('org_id', org.id).eq('status', 'accepted');
+
     const open = openRaw || [];
+    const wonList = (myApps || []).map(a => a.work_orders).filter(Boolean);
 
     if ($("statAvailable")) $("statAvailable").textContent = open.length;
-    // Stat lainnya (Dikerjakan, Selesai) di-update nanti aja di fase Logistik
-    
+    if ($("statActive")) $("statActive").textContent = wonList.filter(w => w.status === 'closed').length;
+
+    // Render List Utama (gabungan open + won)
     if ($("konveksiWorkList")) {
-      $("konveksiWorkList").innerHTML = open.length ? open.map(wo => `
-        <div class="activity-item" style="cursor:pointer" onclick="window.openSJDetail('${wo.id}')">
-          <div class="activity-info">
-            <div class="activity-title">${wo.title}</div>
-            <div class="activity-meta">${wo.target_quantity} pcs · Dari: ${wo.organizations?.name || '-'}</div>
+      let html = '';
+
+      // Render yang menang dulu (dengan notif khusus)
+      if (wonList.length > 0) {
+        html += '<h3 style="font-size:.85rem; color:var(--ok); text-transform:uppercase; margin:0 0 .5rem; letter-spacing:.05em;">🎉 Proyek Dimenangkan</h3>';
+        html += wonList.map(wo => `
+          <div class="activity-item" style="cursor:pointer; border-left:3px solid var(--ok); background:#ecfdf5;" onclick="window.openSJDetail('${wo.id}')">
+            <div class="activity-info">
+              <div class="activity-title">${wo.title}</div>
+              <div class="activity-meta">${wo.target_quantity} pcs · Dari: ${wo.organizations?.name || '-'} · <b style="color:var(--ok)">MENANG</b></div>
+            </div>
+            <div style="color:var(--ok); font-size:1.2rem">›</div>
           </div>
-          <div style="color:var(--muted); font-size:1.2rem">›</div>
-        </div>
-      `).join('') : '<div class="empty-state">Belum ada Surat Jalan.</div>';
+        `).join('');
+        html += '<div style="margin:1.25rem 0 .5rem; border-top:1px solid var(--border)"></div>';
+      }
+
+      // Render yang open
+      if (open.length > 0) {
+        html += '<h3 style="font-size:.85rem; color:var(--muted); text-transform:uppercase; margin:0 0 .5rem; letter-spacing:.05em;">Surat Jalan Tersedia</h3>';
+        html += open.map(wo => `
+          <div class="activity-item" style="cursor:pointer" onclick="window.openSJDetail('${wo.id}')">
+            <div class="activity-info">
+              <div class="activity-title">${wo.title}</div>
+              <div class="activity-meta">${wo.target_quantity} pcs · Dari: ${wo.organizations?.name || '-'}</div>
+            </div>
+            <div style="color:var(--muted); font-size:1.2rem">›</div>
+          </div>
+        `).join('');
+      }
+
+      $("konveksiWorkList").innerHTML = html || '<div class="empty-state">Belum ada Surat Jalan.</div>';
     }
 
+    // Render Overview (di beranda)
     if ($("overviewList")) {
-      $("overviewList").innerHTML = open.slice(0, 3).map(wo => `
-        <div class="activity-item" onclick="window.openSJDetail('${wo.id}')" style="cursor:pointer">
+      const combined = [...wonList, ...open];
+      $("overviewList").innerHTML = combined.slice(0, 3).map(wo => {
+        const isWon = wonList.some(w => w.id === wo.id);
+        return `
+        <div class="activity-item" onclick="window.openSJDetail('${wo.id}')" style="cursor:pointer; ${isWon ? 'background:#ecfdf5;' : ''}">
           <div class="activity-info">
             <div class="activity-title">${wo.title}</div>
             <div class="activity-meta">${wo.target_quantity} pcs</div>
           </div>
-          <span class="activity-status open">OPEN</span>
+          <span class="activity-status ${isWon ? 'closed' : 'open'}">${isWon ? 'MENANG' : 'OPEN'}</span>
         </div>
-      `).join('') || '<div class="empty-state">Belum ada aktivitas.</div>';
+      `}).join('') || '<div class="empty-state">Belum ada aktivitas.</div>';
     }
   }
 
@@ -507,10 +542,19 @@
       }
       
       KB.showToast('Konveksi berhasil diterima!', 'success');
-      // Redirect ke halaman Your Room
+      
+      // Ambil work_order_id dari app yang barusan di-accept
+      const { data: acceptedApp } = await KB.supabase.from('work_order_applications')
+        .select('work_order_id').eq('id', appId).single();
+      
+      // Redirect ke halaman Your Room pakai work_order_id
       setTimeout(() => {
-        switchTab('your-room');
-        window.openYourRoom(appId);
+        if (acceptedApp) {
+          switchTab('your-room');
+          window.openYourRoom(acceptedApp.work_order_id);
+        } else {
+          location.reload();
+        }
       }, 1000);
     } catch (err) {
       console.error('Exception:', err);
