@@ -230,8 +230,14 @@
 
     // Ambil data WO lengkap + item + lamaran (komentar)
     const { data: wo, error } = await KB.supabase.from('work_orders')
-      .select('*, work_order_items(name), organizations!work_orders_org_id_fkey(name), work_order_applications(id, status, org_id, message, applied_at)')
+      .select('*, work_order_items(name), work_order_applications(id, status, org_id, message, applied_at)')
       .eq('id', woId).single();
+
+    // Ambil nama Garment via RPC (karena RLS blok join langsung)
+    if (wo && wo.org_id) {
+      const { data: garmentOrgs } = await KB.supabase.rpc('get_orgs_public', { p_ids: [wo.org_id] });
+      wo.organizations = (garmentOrgs && garmentOrgs[0]) || null;
+    }
 
     if (error) { container.innerHTML = `<div class="empty-state" style="color:var(--err)">Error: ${error.message}</div>`; return; }
 
