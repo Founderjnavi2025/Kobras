@@ -145,6 +145,13 @@
       </div>
     </section>
 
+    <section id="tab-detail-sj" class="tab-section" hidden>
+      <div class="card">
+        <button class="btn btn-ghost btn-sm" id="backToGarmentList" style="margin-bottom:1rem; padding-left:0">← Kembali</button>
+        <div id="sjDetailGarment"></div>
+      </div>
+    </section>
+
     <section id="tab-riwayat" class="tab-section" hidden>
       <div class="card"><div class="card-head"><h2>Riwayat Surat Jalan</h2></div><div id="riwayatList"><div class="empty-state">Belum ada riwayat.</div></div></div>
     </section>
@@ -192,7 +199,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
-<script src="dashboard.js?v=503"></script>
+<script src="dashboard.js?v=504"></script>
 <script>
   KB.requireAuth("dashboard-garment");
   document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };

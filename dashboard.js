@@ -34,7 +34,7 @@
       overview: 'Overview',
       'surat-jalan': 'Surat Jalan',
       dikerjakan: 'Sedang Dikerjakan',
-      riwayat: 'Riwayat',
+      riwayat: 'Riwayat', 'detail-sj': 'Detail Surat Jalan',
       profil: 'Profil Usaha',
       pengaturan: 'Pengaturan'
     };
@@ -143,14 +143,13 @@
         ? `<div style="font-size:.8rem; font-style:italic; color:var(--muted); margin-bottom:.35rem">💬 ${wo.negotiable_note}</div>`
         : '';
 
-      return `<div class="sj-card">
+      return `<div class="sj-card" style="cursor:pointer" onclick="window.openSJDetailGarment('${wo.id}')">
         <div class="sj-card-header"><div class="sj-card-title">${wo.title}</div>
           <span class="badge ${wo.status === 'closed' ? 'badge-approved' : ''}">${wo.status.toUpperCase()}</span></div>
         <div class="sj-card-meta">${wo.target_quantity} pcs · Deadline: ${wo.deadline || '-'}</div>
         <div class="sj-card-items">${items || '-'}</div>
         ${priceLine}
         ${negoLine}
-        ${actionHtml}
       </div>`;
     };
 
@@ -405,6 +404,108 @@
 
 
   // ============ INIT ============
+
+  // ============ DETAIL SJ (GARMENT) ============
+  window.openSJDetailGarment = async function(woId) {
+    switchTab('detail-sj');
+    const container = document.getElementById("sjDetailGarment");
+    container.innerHTML = '<div class="empty-state">Memuat detail...</div>';
+
+    // Ambil WO + lamaran
+    const { data: wo, error } = await KB.supabase.from('work_orders')
+      .select('*, work_order_items(name), work_order_applications(id, status, org_id, message, applied_at)')
+      .eq('id', woId).single();
+
+    if (error) { container.innerHTML = `<div class="empty-state" style="color:var(--err)">Error: ${error.message}</div>`; return; }
+
+    // Ambil nama konveksi pelamar via RPC
+    const appOrgIds = (wo.work_order_applications || []).map(a => a.org_id);
+    let orgMap = {};
+    if (appOrgIds.length > 0) {
+      const { data: orgs } = await KB.supabase.rpc('get_orgs_public', { p_ids: appOrgIds });
+      (orgs || []).forEach(o => orgMap[o.id] = o);
+    }
+
+    // Cek riwayat survei (buat tau apakah udah pernah survei)
+    const { data: surveys } = await KB.supabase.from('partner_surveys')
+      .select('konveksi_org_id').eq('garment_org_id', wo.org_id);
+    const surveyed = (surveys || []).map(s => s.konveksi_org_id);
+
+    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) : '-';
+    const fmtTime = (d) => d ? new Date(d).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) : '';
+
+    // Render Komentar
+    const commentsHtml = (wo.work_order_applications || []).map(a => {
+      const name = orgMap[a.org_id]?.name || 'Konveksi';
+      const isSurveyed = surveyed.includes(a.org_id);
+      return `
+        <div style="background:#fff; padding:.85rem; border-radius:8px; border:1px solid var(--border); margin-bottom:.65rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:.35rem;">
+            <strong style="font-size:.85rem;">${name}</strong>
+            <span class="small muted">${fmtDate(a.applied_at)} ${fmtTime(a.applied_at)}</span>
+          </div>
+          <p style="margin:0 0 .5rem; font-size:.9rem;">${a.message || '(Tidak ada pesan)'}</p>
+          ${a.status === 'accepted' 
+            ? '<span class="small" style="color:var(--ok); font-weight:700">✓ Diterima</span>' 
+            : a.status === 'rejected'
+              ? '<span class="small" style="color:var(--err); font-weight:700">Ditolak</span>'
+              : wo.status === 'open' 
+                ? `<button class="btn btn-primary btn-sm" onclick="window.acceptApplication('${a.id}', ${isSurveyed})">
+                    ${isSurveyed ? 'Terima (Sudah Survei)' : 'Terima & Survei'}
+                  </button>`
+                : ''}
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div style="margin-bottom:1.5rem;">
+        <h2 style="margin:0 0 .5rem">${wo.title}</h2>
+        <p class="muted small">${wo.target_quantity} pcs · Deadline: ${fmtDate(wo.deadline)}</p>
+      </div>
+
+      <div style="background:var(--surface-2); padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid var(--border);">
+        <h3 style="font-size:.9rem; margin:0 0 .75rem; color:var(--muted); text-transform:uppercase;">Detail Pekerjaan</h3>
+        <p style="margin:0 0 .5rem; font-size:.95rem;">${wo.description || 'Tidak ada deskripsi.'}</p>
+        <div style="display:flex; justify-content:space-between; font-size:.9rem; margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--border);">
+          <span>Harga: <b style="color:var(--brand)">${formatRp(wo.total_price)}</b></span>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="font-size:1rem; margin-bottom:1rem;">Pelamar (${(wo.work_order_applications||[]).length})</h3>
+        ${commentsHtml || '<div class="empty-state small">Belum ada pelamar.</div>'}
+      </div>
+    `;
+
+    document.getElementById("backToGarmentList").onclick = () => switchTab('surat-jalan');
+  };
+
+  // C. Fungsi terima lamaran (sudah ada di kode lama, sesuaikan)
+  window.acceptApplication = async function(appId, isSurveyed) {
+    let notes = null;
+    if (!isSurveyed) {
+      if (!confirm('Wajib survei fisik ke tempat konveksi. Lanjutkan?')) return;
+      notes = prompt('Catatan survei (Cth: Tempat bersih, 5 mesin jahit):');
+      if (notes === null) return;
+    } else {
+      if (!confirm('Terima konveksi ini sebagai partner? Konveksi lain otomatis ditolak.')) return;
+    }
+
+    const { error } = await KB.supabase.rpc('accept_application_with_survey', { 
+      p_app_id: appId,
+      p_survey_date: new Date().toISOString().split('T')[0],
+      p_survey_notes: notes || '-'
+    });
+
+    if (error) return KB.showToast(error.message, 'error');
+    KB.showToast('Konveksi diterima!', 'success');
+    
+    // Refresh detail
+    const urlParams = new URLSearchParams(window.location.search);
+    setTimeout(() => location.reload(), 800);
+  };
+
   window.initDashboardData = async function(type) {
     const org = await getMyOrg();
     if (!org) return;
