@@ -35,6 +35,7 @@
       'surat-jalan': 'Surat Jalan',
       dikerjakan: 'Sedang Dikerjakan',
       riwayat: 'Riwayat', 'detail-sj': 'Detail Surat Jalan',
+      'your-room': 'Your Room',
       profil: 'Profil Usaha',
       pengaturan: 'Pengaturan'
     };
@@ -505,12 +506,69 @@
         return KB.showToast('Gagal: ' + error.message, 'error');
       }
       
-      KB.showToast('Konveksi diterima!', 'success');
-      setTimeout(() => location.reload(), 1000);
+      KB.showToast('Konveksi berhasil diterima!', 'success');
+      // Redirect ke halaman Your Room
+      setTimeout(() => {
+        switchTab('your-room');
+        window.openYourRoom(appId);
+      }, 1000);
     } catch (err) {
       console.error('Exception:', err);
       KB.showToast('Error: ' + err.message, 'error');
     }
+  };
+
+
+  // ============ YOUR ROOM (GARMENT) ============
+  window.openYourRoom = async function(workOrderId) {
+    const container = document.getElementById("yourRoomContent");
+    if (!container) return;
+    container.innerHTML = '<div class="empty-state">Memuat Room...</div>';
+
+    const { data: wo, error } = await KB.supabase.from('work_orders')
+      .select('*, work_order_applications(status, org_id, message)')
+      .eq('id', workOrderId).single();
+
+    if (error || !wo) { container.innerHTML = '<div class="empty-state" style="color:var(--err)">Room tidak ditemukan.</div>'; return; }
+
+    const acceptedApp = (wo.work_order_applications || []).find(a => a.status === 'accepted');
+    if (!acceptedApp) { container.innerHTML = '<div class="empty-state">Belum ada konveksi yang diterima di room ini.</div>'; return; }
+
+    // Ambil nama konveksi via RPC
+    const { data: orgs } = await KB.supabase.rpc('get_orgs_public', { p_ids: [acceptedApp.org_id] });
+    const konveksiName = orgs?.[0]?.name || 'Konveksi';
+
+    container.innerHTML = `
+      <div style="text-align:center; margin-bottom:2rem;">
+        <div style="font-size:2.5rem; margin-bottom:.5rem">🎉</div>
+        <h2 style="margin:0 0 .5rem">Kerja Sama Terjalin!</h2>
+        <p class="muted">Anda telah memilih <b>${konveksiName}</b> untuk mengerjakan proyek ini.</p>
+      </div>
+
+      <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom:1.5rem;">
+        <h3 style="margin:0 0 1rem; font-size:1rem; color:var(--brand);">📦 ${wo.title}</h3>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; font-size:.9rem;">
+          <span>Qty Target:</span><strong>${wo.target_quantity} pcs</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem; font-size:.9rem;">
+          <span>Harga Borongan:</span><strong>${formatRp(wo.total_price)}</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:.9rem;">
+          <span>Mitra:</span><strong>${konveksiName}</strong>
+        </div>
+      </div>
+
+      <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:var(--radius); padding:1.25rem; text-align:center;">
+        <div style="font-size:1.5rem; margin-bottom:.5rem">⏳</div>
+        <h3 style="font-size:1rem; margin:0 0 .5rem; color:#92400e;">Menunggu Konveksi Membuka Room</h3>
+        <p class="small" style="margin:0; color:#92400e;">
+          Konveksi <b>${konveksiName}</b> akan menerima notifikasi untuk membayar biaya Room (Rp 30.000). 
+          Setelah dibayar, Anda dapat memantau progres produksi di halaman ini.
+        </p>
+      </div>
+    `;
+
+    document.getElementById("backToGarmentListRoom").onclick = () => switchTab('surat-jalan');
   };
 
   window.initDashboardData = async function(type) {

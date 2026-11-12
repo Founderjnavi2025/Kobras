@@ -16,6 +16,7 @@
       <button class="dash-nav-item active" data-tab="overview"><span class="ico">▤</span> Overview</button>
       <button class="dash-nav-item" data-tab="surat-jalan"><span class="ico">-</span> Surat Jalan</button>
       <button class="dash-nav-item" data-tab="riwayat"><span class="ico">-</span> Riwayat</button>
+      <button class="dash-nav-item" data-tab="your-room"><span class="ico">-</span> Your Room</button>
       <button class="dash-nav-item" data-tab="profil"><span class="ico">-</span> Profil Usaha</button>
       <button class="dash-nav-item" data-tab="pengaturan"><span class="ico">-</span> Pengaturan</button>
     </nav>
@@ -152,6 +153,13 @@
       </div>
     </section>
 
+    <section id="tab-your-room" class="tab-section" hidden>
+      <div class="card">
+        <button class="btn btn-ghost btn-sm" id="backToGarmentListRoom" style="margin-bottom:1rem; padding-left:0">← Kembali</button>
+        <div id="yourRoomContent"></div>
+      </div>
+    </section>
+
     <section id="tab-riwayat" class="tab-section" hidden>
       <div class="card"><div class="card-head"><h2>Riwayat Surat Jalan</h2></div><div id="riwayatList"><div class="empty-state">Belum ada riwayat.</div></div></div>
     </section>
@@ -193,13 +201,14 @@
   <button class="bottom-nav-item active" data-nav="overview"><span>Beranda</span></button>
   <button class="bottom-nav-item" data-nav="surat-jalan"><span>SJ</span></button>
   <button class="bottom-nav-item" data-nav="riwayat"><span>Riwayat</span></button>
+  <button class="bottom-nav-item" data-nav="your-room"><span>Room</span></button>
   <button class="bottom-nav-item" data-nav="profil"><span>Profil</span></button>
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
-<script src="dashboard.js?v=506"></script>
+<script src="dashboard.js?v=507"></script>
 <script>
   KB.requireAuth("dashboard-garment");
   document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };
