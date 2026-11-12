@@ -6,7 +6,7 @@
 <title>KO-BRAS · Dashboard Konveksi</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
-<link rel="stylesheet" href="dashboard-style.css?v=10" />
+<link rel="stylesheet" href="dashboard-style.css?v=11" />
 </head>
 <body>
 <div class="dash-layout">
@@ -93,8 +93,16 @@
 
     <section id="tab-surat-jalan" class="tab-section" hidden>
       <div class="card">
-        <div class="card-head"><h2>Surat Jalan Tersedia</h2><p>Ajukan kesediaan jika kapasitas Anda mencukupi.</p></div>
-        <div id="konveksiWorkList"><div class="empty-state">Memuat...</div></div>
+        <div class="card-head"><h2>Surat Jalan Tersedia</h2><p>Pilih proyek untuk melihat detail dan mengajukan kesediaan.</p></div>
+        <div id="konveksiWorkList" class="activity-list"><div class="empty-state">Memuat...</div></div>
+      </div>
+    </section>
+
+    <!-- HALAMAN DETAIL (Hidden by default) -->
+    <section id="tab-detail-sj" class="tab-section" hidden>
+      <div class="card">
+        <button class="btn btn-ghost btn-sm" id="backToSJList" style="margin-bottom:1rem; padding-left:0">← Kembali</button>
+        <div id="sjDetailContent"></div>
       </div>
     </section>
 
@@ -146,7 +154,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
-<script src="dashboard.js?v=500"></script>
+<script src="dashboard.js?v=501"></script>
 <script>
   KB.requireAuth("dashboard-konveksi");
   document.getElementById("logoutBtn").onclick = async () => { await KB.supabase.auth.signOut(); location.href = "index.html"; };

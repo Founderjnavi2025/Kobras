@@ -186,77 +186,146 @@
   // ============ KONVEKSI ============
   async function loadKonveksi(org) {
     const { data: openRaw } = await KB.supabase.from('work_orders')
-      .select('*, work_order_items(name)')
+      .select('id, title, target_quantity, total_price, organizations!work_orders_org_id_fkey(name)')
       .eq('status', 'open').order('created_at', { ascending: false });
 
-    // Ambil nama org lewat RPC (aman, tanpa data sensitif)
-    const orgIds = [...new Set((openRaw || []).map(w => w.org_id).filter(Boolean))];
-    let orgMap = {};
-    if (orgIds.length > 0) {
-      const { data: orgs } = await KB.supabase.rpc('get_orgs_public', { p_ids: orgIds });
-      (orgs || []).forEach(o => orgMap[o.id] = o);
-    }
-    const open = (openRaw || []).map(w => ({ ...w, organizations: orgMap[w.org_id] || null }));
+    const open = openRaw || [];
 
-    const { data: mine } = await KB.supabase.from('work_order_applications')
-      .select('work_order_id, status, work_orders(*, work_order_items(name), organizations!work_orders_org_id_fkey(name))')
-      .eq('org_id', org.id);
-
-    const accepted = (mine || []).filter(a => a.status === 'accepted').map(a => a.work_orders).filter(Boolean);
-    const pending = (mine || []).filter(a => a.status === 'pending').length;
-
-    if ($("statAvailable")) $("statAvailable").textContent = (open || []).length;
-    if ($("statActive")) $("statActive").textContent = accepted.filter(w => w.status === 'closed').length;
-    if ($("statDone")) $("statDone").textContent = 0;
-    if ($("statSurvey")) $("statSurvey").textContent = pending;
-
-    const renderCard = (wo, showApply) => {
-      const items = (wo.work_order_items || []).map(i => i.name).join(', ');
-      const total = Number(wo.total_price) || 0;
-      const perPcs = pricePerPcs(wo);
-      const priceLine = total > 0
-        ? `<div style="font-size:.85rem; margin:.35rem 0; color:var(--brand-2)">
-             💰 <b>${formatRp(total)}</b> (Borongan) · Setara ${formatRp(perPcs)}/pcs
-           </div>`
-        : `<div style="font-size:.85rem; margin:.35rem 0; color:var(--err)">⚠️ Harga belum disepakati</div>`;
-      const negoLine = wo.negotiable_note
-        ? `<div style="font-size:.8rem; font-style:italic; color:var(--muted); margin-bottom:.35rem">💬 ${wo.negotiable_note}</div>`
-        : '';
-
-      return `<div class="sj-card">
-        <div class="sj-card-header"><div class="sj-card-title">${wo.title}</div>
-          <span class="badge">${wo.target_quantity} pcs</span></div>
-        <div class="sj-card-meta">Dari: ${wo.organizations?.name || '-'} · Deadline: ${wo.deadline || '-'}</div>
-        <div class="sj-card-items">${items || '-'}</div>
-        ${priceLine}
-        ${negoLine}
-        ${showApply ? `<button class="btn btn-outline btn-sm" style="margin-top:.5rem" onclick="KB.applyJob('${wo.id}', '${org.id}')">Ajukan Kesediaan</button>` : ''}
-      </div>`;
-    };
-
+    if ($("statAvailable")) $("statAvailable").textContent = open.length;
+    // Stat lainnya (Dikerjakan, Selesai) di-update nanti aja di fase Logistik
+    
     if ($("konveksiWorkList")) {
-      $("konveksiWorkList").innerHTML = (open || []).length ? open.map(w => renderCard(w, true)).join('') : '<div class="empty-state">Belum ada Surat Jalan.</div>';
-    }
-    if ($("inProgressList")) {
-      $("inProgressList").innerHTML = accepted.length ? accepted.map(w => renderCard(w, false)).join('') : '<div class="empty-state">Belum ada pekerjaan aktif.</div>';
-    }
-    if ($("overviewList")) {
-      $("overviewList").innerHTML = (open || []).length ? open.slice(0, 5).map(wo => {
-        const total = Number(wo.total_price) || 0;
-        return `<div class="activity-item">
+      $("konveksiWorkList").innerHTML = open.length ? open.map(wo => `
+        <div class="activity-item" style="cursor:pointer" onclick="window.openSJDetail('${wo.id}')">
           <div class="activity-info">
             <div class="activity-title">${wo.title}</div>
-            <div class="activity-meta">${wo.target_quantity} pcs · ${formatRp(total)}</div>
+            <div class="activity-meta">${wo.target_quantity} pcs · Dari: ${wo.organizations?.name || '-'}</div>
           </div>
-          <span class="activity-status open">open</span>
-        </div>`;
-      }).join('') : '<div class="empty-state">Belum ada aktivitas.</div>';
+          <div style="color:var(--muted); font-size:1.2rem">›</div>
+        </div>
+      `).join('') : '<div class="empty-state">Belum ada Surat Jalan.</div>';
     }
-    if ($("riwayatList")) {
-      $("riwayatList").innerHTML = accepted.filter(w => w.status === 'closed').map(w => renderCard(w, false)).join('') || '<div class="empty-state">Belum ada riwayat.</div>';
+
+    if ($("overviewList")) {
+      $("overviewList").innerHTML = open.slice(0, 3).map(wo => `
+        <div class="activity-item" onclick="window.openSJDetail('${wo.id}')" style="cursor:pointer">
+          <div class="activity-info">
+            <div class="activity-title">${wo.title}</div>
+            <div class="activity-meta">${wo.target_quantity} pcs</div>
+          </div>
+          <span class="activity-status open">OPEN</span>
+        </div>
+      `).join('') || '<div class="empty-state">Belum ada aktivitas.</div>';
     }
   }
 
+  // --- B. Fungsi buka Detail SJ ---
+  window.openSJDetail = async function(woId) {
+    switchTab('detail-sj');
+    const container = document.getElementById("sjDetailContent");
+    container.innerHTML = '<div class="empty-state">Memuat detail...</div>';
+
+    const org = await getMyOrg();
+    if (!org) return;
+
+    // Ambil data WO lengkap + item + lamaran (komentar)
+    const { data: wo, error } = await KB.supabase.from('work_orders')
+      .select('*, work_order_items(name), organizations!work_orders_org_id_fkey(name), work_order_applications(id, status, org_id, message, applied_at)')
+      .eq('id', woId).single();
+
+    if (error) { container.innerHTML = `<div class="empty-state" style="color:var(--err)">Error: ${error.message}</div>`; return; }
+
+    // Ambil nama-nama pelamar (buat komentar)
+    const appOrgIds = (wo.work_order_applications || []).map(a => a.org_id);
+    let orgMap = {};
+    if (appOrgIds.length > 0) {
+      const { data: orgs } = await KB.supabase.rpc('get_orgs_public', { p_ids: appOrgIds });
+      (orgs || []).forEach(o => orgMap[o.id] = o);
+    }
+
+    // Cek status lamaran gue
+    const myApp = (wo.work_order_applications || []).find(a => a.org_id === org.id);
+    
+    // Format tanggal
+    const fmtDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' }) : '-';
+    const fmtTime = (d) => d ? new Date(d).toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }) : '';
+
+    // Render Komentar
+    const commentsHtml = (wo.work_order_applications || []).map(a => {
+      const isMe = a.org_id === org.id;
+      const name = orgMap[a.org_id]?.name || 'Konveksi';
+      return `
+        <div style="background: ${isMe ? 'var(--brand-light)' : '#fff'}; padding:.85rem; border-radius:8px; border:1px solid var(--border); margin-bottom:.65rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:.35rem;">
+            <strong style="font-size:.85rem; color:${isMe ? 'var(--brand)' : 'var(--text)'}">${name} ${isMe ? '(Anda)' : ''}</strong>
+            <span class="small muted">${fmtDate(a.applied_at)} ${fmtTime(a.applied_at)}</span>
+          </div>
+          <p style="margin:0; font-size:.9rem;">${a.message || '(Tidak ada pesan)'}</p>
+          ${a.status === 'accepted' ? '<span class="small" style="color:var(--ok); font-weight:700; display:block; margin-top:.35rem">✓ Diterima</span>' : ''}
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div style="margin-bottom:1.5rem;">
+        <h2 style="margin:0 0 .5rem">${wo.title}</h2>
+        <p class="muted small">Dari: <b>${wo.organizations?.name || '-'}</b> · Deadline: ${fmtDate(wo.deadline)}</p>
+      </div>
+
+      <div style="background:var(--surface-2); padding:1rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid var(--border);">
+        <h3 style="font-size:.9rem; margin:0 0 .75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;">Detail Pekerjaan</h3>
+        <p style="margin:0 0 .5rem; font-size:.95rem;">${wo.description || 'Tidak ada deskripsi.'}</p>
+        
+        <div style="display:flex; justify-content:space-between; font-size:.9rem; margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--border);">
+          <span>Target: <b>${wo.target_quantity} pcs</b></span>
+          <span>Bahan: <b>${(wo.work_order_items||[]).map(i=>i.name).join(', ') || '-'}</b></span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:.9rem; margin-top:.5rem;">
+          <span>Harga: <b style="color:var(--brand)">${formatRp(wo.total_price)}</b> (Borongan)</span>
+          <span>Setara <b>${formatRp((wo.total_price||0)/wo.target_quantity)}/pcs</b></span>
+        </div>
+        ${wo.negotiable_note ? `<div class="small" style="margin-top:.5rem; font-style:italic; color:var(--muted)">💬 ${wo.negotiable_note}</div>` : ''}
+      </div>
+
+      <div style="margin-bottom:1.5rem;">
+        <h3 style="font-size:1rem; margin-bottom:1rem;">Ajuan & Komentar (${(wo.work_order_applications||[]).length})</h3>
+        <div style="max-height:300px; overflow-y:auto; padding-right:.5rem;">
+          ${commentsHtml || '<div class="empty-state small">Belum ada ajuan. Jadilah yang pertama!</div>'}
+        </div>
+      </div>
+
+      ${!myApp ? `
+        <div style="position:sticky; bottom:0; background:var(--surface); padding-top:1rem; border-top:1px solid var(--border);">
+          <textarea id="applyMessage" placeholder="Tulis kesediaan Anda (Cth: Sanggup bos, 1000pcs 4jt, minggu depan jalan)" rows="3" style="width:100%; padding:.75rem; background:var(--surface-2); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:inherit; resize:none; margin-bottom:.5rem;"></textarea>
+          <button class="btn btn-primary btn-block" onclick="window.submitApplication('${wo.id}', '${org.id}')">Kirim Ajuan Kesediaan</button>
+        </div>
+      ` : `<div class="empty-state small" style="background:var(--surface-2); border-radius:8px; padding:1rem; border:1px solid var(--border)">Anda sudah mengajukan kesediaan.</div>`}
+    `;
+
+    // Listener back button
+    document.getElementById("backToSJList").onclick = () => switchTab('surat-jalan');
+  };
+
+  // --- C. Fungsi kirim lamaran + komentar ---
+  window.submitApplication = async function(woId, orgId) {
+    const msg = document.getElementById("applyMessage").value.trim();
+    if (!msg) return KB.showToast("Tulis pesan kesediaan dulu", "error");
+
+    const btn = event.target;
+    KB.setLoading(btn, true, "Mengirim...");
+
+    const { error } = await KB.supabase.from('work_order_applications').insert({
+      work_order_id: woId, org_id: orgId, message: msg
+    });
+
+    if (error) {
+      KB.setLoading(btn, false, "Kirim Ajuan Kesediaan");
+      return KB.showToast(error.code === '23505' ? 'Anda sudah mengajukan ini.' : error.message, 'error');
+    }
+
+    KB.showToast("Ajuan berhasil dikirim!", "success");
+    window.openSJDetail(woId); // Refresh halaman detail
+  };
   KB.applyJob = async function(woId, orgId) {
     if (!confirm('Sanggup mengerjakan SELURUH pesanan ini?')) return;
     const { error } = await KB.supabase.from('work_order_applications').insert({ work_order_id: woId, org_id: orgId });
