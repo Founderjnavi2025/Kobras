@@ -3,102 +3,178 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cek Work Order</title>
+<title>Diagnostik KO-BRAS v2</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  body{padding:1.25rem;font-family:system-ui,sans-serif}
-  h1{font-size:1.4rem}
-  .item{padding:.75rem;margin:.5rem 0;border-radius:10px;border:1px solid var(--border);background:var(--surface)}
-  .ok{border-color:var(--ok)} .ok b{color:var(--ok)}
-  .bad{border-color:var(--err)} .bad b{color:var(--err)}
-  pre{font-size:.72rem;white-space:pre-wrap;word-break:break-all;margin:.35rem 0 0;color:var(--muted)}
+  body{padding:1.25rem; font-family:system-ui, sans-serif; max-width:720px; margin:0 auto;}
+  h1{font-size:1.5rem; margin-bottom:.25rem}
+  h2{font-size:1rem; margin:1.5rem 0 .5rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
+  .item{padding:.75rem 1rem; margin:.35rem 0; border-radius:10px; border:1px solid var(--border); background:var(--surface); font-size:.9rem}
+  .ok{border-left:4px solid var(--ok); background:#ecfdf5}
+  .bad{border-left:4px solid var(--err); background:#fef2f2}
+  .warn{border-left:4px solid var(--brand); background:#eff6ff}
+  pre{font-size:.72rem; white-space:pre-wrap; word-break:break-all; margin:.35rem 0 0; color:var(--muted)}
+  button{margin-top:1rem; padding:.75rem 1rem; border-radius:10px; border:1px solid var(--border); background:var(--brand); color:white; font-weight:700; width:100%; font-size:1rem; cursor:pointer}
+  button:disabled{opacity:.5; cursor:not-allowed}
+  .summary{padding:1rem; background:var(--brand-light); border-radius:12px; margin-bottom:1rem; font-weight:700; display:none}
 </style>
 </head>
 <body>
-<h1>Diagnostik Work Order</h1>
+<h1>Diagnostik KO-BRAS</h1>
+<p class="muted small">Cek semua fungsi krusial: Auth, Database, RLS, RPC, Enum.</p>
+<div id="summary" class="summary"></div>
 <div id="out"></div>
+<button id="reload" onclick="location.reload()">Ulangi Cek</button>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js"></script>
 <script>
 const out = document.getElementById('out');
+let pass = 0, fail = 0, warn = 0;
+
 function add(cls, title, detail) {
   const d = document.createElement('div');
   d.className = 'item ' + cls;
   d.innerHTML = '<b>' + title + '</b>' + (detail ? '<pre>' + String(detail).replace(/</g,'&lt;') + '</pre>' : '');
   out.appendChild(d);
+  if (cls === 'ok') pass++;
+  else if (cls === 'bad') fail++;
+  else if (cls === 'warn') warn++;
+  const sum = document.getElementById('summary');
+  sum.style.display = 'block';
+  sum.innerHTML = `Hasil: <span style="color:var(--ok)">${pass} OK</span> · <span style="color:var(--err)">${fail} GAGAL</span> · <span style="color:var(--brand)">${warn} WARNING</span>`;
 }
 
 (async () => {
-  add('ok', '✓ Halaman dimuat', '');
-  
+  // ============ INIT ============
+  add('ok', '✓ Halaman & script dimuat', '');
+
   if (!window.KB || !window.KB.supabase) {
     add('bad', '✗ auth.js gagal load', 'window.KB kosong');
     return;
   }
   add('ok', '✓ auth.js load', 'KB.supabase tersedia');
 
-  const { data: { session } } = await KB.supabase.auth.getSession();
+  const sb = window.KB.supabase;
+
+  // ============ 1. CEK SESSION ============
+  const { data: { session } } = await sb.auth.getSession();
   if (!session) {
-    add('bad', '✗ Tidak ada session', 'Login dulu, buka halaman ini setelah login');
+    add('bad', '✗ Tidak ada session', 'Login dulu sebagai Garment atau Konveksi, lalu buka halaman ini');
     return;
   }
-  add('ok', '✓ Session aktif', session.user.email);
+  add('ok', '✓ Session aktif', `User: ${session.user.email}\nID: ${session.user.id}`);
 
-  // Cek organisasi
-  const { data: org, error: orgErr } = await KB.supabase
-    .from('organizations').select('id, name, type').eq('created_by', session.user.id).maybeSingle();
-  
-  if (orgErr) add('bad', '✗ Query organizations gagal', orgErr.message);
-  else if (!org) add('bad', '✗ Organisasi tidak ditemukan', 'User belum punya organisasi');
-  else add('ok', '✓ Organisasi ditemukan', `Nama: ${org.name}\nType: ${org.type}\nID: ${org.id}`);
+  // ============ 2. CEK ORGANISASI ============
+  const { data: org, error: orgErr } = await sb.from('organizations')
+    .select('id, name, type, city, province')
+    .eq('created_by', session.user.id).maybeSingle();
 
-  if (!org) return;
+  if (orgErr) { add('bad', '✗ Query organizations gagal', orgErr.message); return; }
+  if (!org) { add('bad', '✗ Organisasi tidak ditemukan', 'User belum punya organisasi'); return; }
+  add('ok', '✓ Organisasi ditemukan', `Nama: ${org.name}\nType: ${org.type}\nID: ${org.id}`);
 
-  // Cek tabel work_orders (SELECT)
-  const { error: woErr } = await KB.supabase.from('work_orders').select('id').limit(1);
-  if (woErr) {
-    add('bad', '✗ Tabel work_orders TIDAK BISA DIAKSES', `Error: ${woErr.message}\nCode: ${woErr.code}\n\nKemungkinan tabel belum dibuat (jalankan SQL 0005 di Supabase) ATAU RLS salah.`);
-    return;
-  }
-  add('ok', '✓ Tabel work_orders bisa diakses', '');
-
-  // Coba INSERT work order asli (test)
-  add('ok', '⏳ Mencoba INSERT work order test...', '');
-  const testTitle = `Test ${Date.now()}`;
-  const { data: wo, error: insErr } = await KB.supabase
-    .from('work_orders')
-    .insert({
-      org_id: org.id,
-      title: testTitle,
-      target_quantity: 1,
-      deadline: null,
-      created_by: session.user.id
-    })
-    .select()
-    .single();
-  
-  if (insErr) {
-    add('bad', '✗ INSERT work_orders GAGAL', `Pesan: ${insErr.message}\nCode: ${insErr.code}\nDetails: ${insErr.details || '-'}\nHint: ${insErr.hint || '-'}`);
-    return;
-  }
-  add('ok', '✓ INSERT work_orders BERHASIL!', `ID: ${wo.id}\nTitle: ${wo.title}\n\nBerarti form seharusnya jalan. Kalau di dashboard tetap gagal, kemungkinan JavaScript handler gak ke-attach (masalah cache).`);
-
-  // Coba INSERT item
-  const { error: itemErr } = await KB.supabase.from('work_order_items').insert({
-    work_order_id: wo.id,
-    name: 'Test Item'
-  });
-  if (itemErr) {
-    add('bad', '✗ INSERT work_order_items GAGAL', `Pesan: ${itemErr.message}\nCode: ${itemErr.code}`);
+  // ============ 3. CEK ENUM STATUS (5 VALUE) ============
+  // Kita ngetes dengan query filter ke work_orders, sambil ngecek apakah enumnya punya 'matched'
+  const { error: enumErr } = await sb.from('work_orders').select('id').eq('status', 'matched').limit(1);
+  if (enumErr) {
+    add('bad', '✗ Enum status TIDAK punya "matched"', `Error: ${enumErr.message}\n\nSQL 0009 belum dijalankan.`);
   } else {
-    add('ok', '✓ INSERT work_order_items BERHASIL', '');
+    add('ok', '✓ Enum status punya "matched"', 'Migrasi 0009 sukses.');
   }
 
-  // Cleanup: hapus work order test
-  await KB.supabase.from('work_orders').delete().eq('id', wo.id);
-  add('ok', '✓ Test data dibersihkan', '');
+  // ============ 4. CEK RPC accept_application_with_survey ============
+  // Kita coba panggil dengan UUID dummy. Kalau RPC gak ada, error kode 42883.
+  const { error: rpcErr } = await sb.rpc('accept_application_with_survey', {
+    p_app_id: '00000000-0000-0000-0000-000000000000',
+    p_survey_date: '2026-01-01',
+    p_survey_notes: 'test'
+  });
+
+  if (rpcErr) {
+    if (rpcErr.message.includes('Lamaran tidak ditemukan')) {
+      add('ok', '✓ RPC accept_application_with_survey ADA', 'Return error "Lamaran tidak ditemukan" = RPC exists, dummy UUID wajar gak nemu');
+    } else if (rpcErr.code === '42883' || rpcErr.message.includes('does not exist')) {
+      add('bad', '✗ RPC accept_application_with_survey TIDAK ADA', `Error: ${rpcErr.message}\n\nSQL migrasi RPC belum dijalankan.`);
+    } else {
+      add('warn', '⚠ RPC ada tapi error lain', rpcErr.message);
+    }
+  } else {
+    add('warn', '⚠ RPC return success padahal UUID dummy', 'Aneh. Cek manual.');
+  }
+
+  // ============ 5. CEK TABEL WORK_ORDERS ============
+  const { error: woErr } = await sb.from('work_orders').select('id').limit(1);
+  if (woErr) add('bad', '✗ Tabel work_orders tidak bisa diakses', woErr.message);
+  else add('ok', '✓ Tabel work_orders OK', '');
+
+  // ============ 6. CEK TABEL WORK_ORDER_APPLICATIONS ============
+  const { error: appErr } = await sb.from('work_order_applications').select('id').limit(1);
+  if (appErr) add('bad', '✗ Tabel work_order_applications tidak bisa diakses', appErr.message);
+  else add('ok', '✓ Tabel work_order_applications OK', '');
+
+  // ============ 7. CEK KOLOM BARU (description, address, pic_name, pic_phone) ============
+  const { error: colErr } = await sb.from('work_orders')
+    .select('id, description, address, pic_name, pic_phone, total_price').limit(1);
+  if (colErr) add('bad', '✗ Kolom work_orders tidak lengkap', `Error: ${colErr.message}\n\nMigrasi 0007/0008 belum dijalankan.`);
+  else add('ok', '✓ Semua kolom work_orders lengkap', 'description, address, pic_name, pic_phone, total_price');
+
+  // ============ 8. CEK PARTNER_SURVEYS ============
+  const { error: surveyErr } = await sb.from('partner_surveys').select('id').limit(1);
+  if (surveyErr) add('bad', '✗ Tabel partner_surveys tidak bisa diakses', surveyErr.message);
+  else add('ok', '✓ Tabel partner_surveys OK', '');
+
+  // ============ 9. CEK RPC get_orgs_public ============
+  const { error: rpcOrgsErr } = await sb.rpc('get_orgs_public', { p_ids: [org.id] });
+  if (rpcOrgsErr) add('bad', '✗ RPC get_orgs_public GAGAL', rpcOrgsErr.message);
+  else add('ok', '✓ RPC get_orgs_public ADA', '');
+
+  // ============ 10. INSERT DUMMY WORK ORDER ============
+  const testTitle = `DiagnosticTest ${Date.now()}`;
+  const { data: testWo, error: insErr } = await sb.from('work_orders').insert({
+    org_id: org.id,
+    created_by: session.user.id,
+    title: testTitle,
+    target_quantity: 1,
+    total_price: 30000,
+    status: 'open'
+  }).select().single();
+
+  if (insErr) {
+    add('bad', '✗ INSERT work_orders GAGAL', `Error: ${insErr.message}\nCode: ${insErr.code}`);
+  } else {
+    add('ok', '✓ INSERT work_orders BERHASIL', `ID: ${testWo.id}\nTitle: ${testWo.title}\nStatus: ${testWo.status}`);
+
+    // ============ 11. CEK STATUS BARU BISA 'matched' ============
+    const { error: updateErr } = await sb.from('work_orders')
+      .update({ status: 'matched' }).eq('id', testWo.id);
+
+    if (updateErr) {
+      add('bad', '✗ Update status ke "matched" GAGAL', updateErr.message);
+    } else {
+      add('ok', '✓ Status "matched" bisa di-set', 'Enum 5-status sukses diaplikasikan.');
+    }
+
+    // ============ 12. HAPUS DATA DUMMY ============
+    const { error: delErr } = await sb.from('work_orders').delete().eq('id', testWo.id);
+    if (delErr) add('warn', '⚠ Gagal hapus data dummy', `${delErr.message}\n\nHapus manual di Supabase: work_orders id = ${testWo.id}`);
+    else add('ok', '✓ Data dummy dibersihkan', '');
+  }
+
+  // ============ 13. CEK AKSES BACA KE ORGANIZATIONS (RLS) ============
+  const { data: otherOrgs, error: otherErr } = await sb.from('organizations').select('id, name, type').neq('id', org.id).limit(3);
+  if (otherErr) {
+    add('warn', '⚠ Query organizations lain error', otherErr.message);
+  } else {
+    add('ok', '✓ Bisa baca organizers lain (via RPC atau policy)', `Jumlah org lain: ${(otherOrgs || []).length}\n\nIni normal, yang penting gak error`);
+  }
+
+  // ============ KESIMPULAN ============
+  add(fail === 0 ? 'ok' : 'bad',
+    fail === 0 ? '🎉 SEMUA TES LULUS!' : `⚠️ ${fail} TES GAGAL`,
+    fail === 0 ? 'Aplikasi siap dipakai.' : 'Ada ' + fail + ' kegagalan di atas. Cek detail error.'
+  );
 })();
 </script>
 </body>
